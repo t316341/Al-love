@@ -139,6 +139,14 @@ textarea:focus,input:focus,select:focus{outline:none;border-color:var(--ink)!imp
 .pick{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(64px + env(safe-area-inset-bottom));width:calc(100% - 24px);max-width:496px;background:var(--bg);border:1px solid var(--sf2);border-radius:18px;padding:14px;z-index:8;box-shadow:0 8px 30px rgba(0,0,0,.12)}
 .pick .q{font-size:13px;color:var(--mut);margin:0 0 10px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 .m .bb{cursor:pointer}.m .bb.on{outline:2px solid var(--ink);outline-offset:2px}
+.tc{border:1px solid var(--line);border-radius:16px;padding:14px 14px 8px;margin-top:10px}
+.tc .th{display:flex;justify-content:space-between;align-items:baseline;gap:10px;margin-bottom:4px}.tc .th b{font-weight:600}.tc .th span{font-size:12px;color:var(--mut);text-align:right}
+.chart{width:100%;height:auto;display:block}
+.dots{display:flex;gap:3px;flex-wrap:wrap;padding:6px 0 8px}.dots i{flex:1;min-width:6px;max-width:28px;height:18px;border-radius:4px;background:var(--sf)}.dots i.on{background:var(--ink)}
+.wtr{display:flex;align-items:center;gap:12px}.wv{flex:1}.wv b{font-size:24px;font-weight:600}.wv small{margin-left:8px;color:var(--mut);font-size:12px}
+.wbar{height:6px;border-radius:3px;background:var(--sf);margin-top:6px;overflow:hidden}.wbar i{display:block;height:100%;background:var(--ink);border-radius:3px}
+.slp{display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap}.slp label{display:flex;flex-direction:column;gap:4px;font-size:12px;color:var(--mut);flex:1 1 120px}
+.slp input,.form input#cx-name,.form input#cx-unit{border:1px solid var(--sf2);background:transparent;border-radius:12px;padding:9px 12px;font-size:16px;min-height:44px;width:100%;color:var(--ink)}.slp .sh{font-size:14px;font-weight:600;padding-bottom:12px;white-space:nowrap}
 .av.xs{width:22px;height:22px;font-size:10px;box-shadow:0 0 0 2px var(--bg)}
 .rep{display:flex;align-items:center;gap:8px;margin:2px 0 4px;color:var(--mut);font-size:13px}
 .rep .avs{display:flex}.rep .avs .av{margin-right:-6px}.rep .avs .av:last-child{margin-right:0}
@@ -295,8 +303,8 @@ function addCare(d,rec){const cl=careLog();(cl[d]||(cl[d]=[])).push(rec);if(cl[d
 const dOf=ts=>{const x=new Date(ts);return x.getFullYear()+'-'+pad(x.getMonth()+1)+'-'+pad(x.getDate())};
 function tidy(d){const l=dlog()[d];if(l&&!hasLog(l))delete dlog()[d]}
 const dlog=()=>S.profile.daylog||(S.profile.daylog={});
-const hasLog=l=>!!(l&&((l.flow)||(l.sym&&l.sym.length)||l.mood||l.note));
-function logText(d){const l=dlog()[d];if(!hasLog(l))return'';const a=[];if(l.flow)a.push('經血量'+{light:'少',mid:'中',heavy:'多'}[l.flow]);if(l.sym&&l.sym.length)a.push('身體：'+l.sym.join('、'));if(l.mood)a.push('心情：'+l.mood);if(l.note)a.push('她寫的備註：'+l.note.slice(0,200));return a.join('；')}
+const hasLog=l=>!!(l&&((l.flow)||(l.sym&&l.sym.length)||l.mood||l.note||typeof l.water==='number'&&l.water>0||typeof l.wt==='number'||l.sb||l.sw||(l.cx&&Object.values(l.cx).some(v=>v!==''&&v!=null&&v!==false))));
+function logText(d){const l=dlog()[d];if(!hasLog(l))return'';const a=[];if(l.flow)a.push('經血量'+{light:'少',mid:'中',heavy:'多'}[l.flow]);if(l.sym&&l.sym.length)a.push('身體：'+l.sym.join('、'));if(l.mood)a.push('心情：'+l.mood);if(typeof l.water==='number'&&l.water>0){const h=hcfg();a.push(`喝了 ${l.water} 杯水（目標 ${h.goal} 杯）`)}{const sh=sleepHrs(l);if(sh!=null)a.push(`昨晚 ${l.sb} 睡、${l.sw} 起床，睡了 ${fmtH(sh)}`)}if(typeof l.wt==='number'&&hcfg().shareWt)a.push(`體重 ${l.wt} kg`);for(const it of hcfg().items){const v=l.cx&&l.cx[it.id];if(v===true)a.push(it.name+'：有');else if(typeof v==='number')a.push(`${it.name}：${v}${it.unit||''}`);else if(typeof v==='string'&&v)a.push(`${it.name}：${v.slice(0,80)}`)}if(l.note)a.push('她寫的備註：'+l.note.slice(0,200));return a.join('；')}
 function cycleMap(){
   const m={},p=S.profile.period;if(!p||!p.hist)return m;const st=per(),len=st?st.len:(+p.len||5);
   for(const h of p.hist)for(let i=0;i<len;i++)m[ds(dn(h)+i)]='pp';
@@ -385,7 +393,7 @@ async function replyDM(cv,mode){
   const care=mode===true||mode==='care',pro=mode==='pro',logm=mode==='log';
   const c=S.convs[cv],cid=c.members[0],ch=S.chars[cid];if(!ch||busy[cv])return;
   busy[cv]=[cid];render();
-  const st=per(),lt=logText(today()),pt=(st?perText(st):'')+(lt?`。${meName()}今天記錄的身體與心情：${lt}`:'');
+  const st=per(),lt=logText(today()),hn=healthNote(),pt=(st?perText(st):'')+(lt?`。${meName()}今天記錄的身體與心情：${lt}`:'')+(hn?`。${hn}`:'');
   const nw=new Date(),last=c.msgs[c.msgs.length-1];
   const clock=`現在是星期${WD[nw.getDay()]} ${pad(nw.getHours())}:${pad(nw.getMinutes())}（${meName()}那邊的時間）。`;
   const ctx=logm?`${clock}${meName()}剛剛跟你說了她今天的狀況：${lt||'（沒有特別寫）'}。${st&&perText(st)?`（另外：${perText(st)}）`:''}請用你自己的方式回應她、關心她，可以陪她、逗她或給一點貼心的小建議，但不要說教，也不要講得像醫生。`
@@ -418,7 +426,7 @@ function inQuiet(ts){const q=quietCfg();if(!q.on||q.from===q.to)return false;con
 function skipQuiet(ts){let t=ts,i=0;while(inQuiet(t)&&i<30){const d=new Date(t);d.setMinutes(0,0,0);d.setHours(d.getHours()+1);t=d.getTime()+Math.random()*40*60e3;i++}return t}
 async function genPro(cid,at){
   const ch=S.chars[cid],c=S.convs['dm_'+cid];if(!ch||!c)return null;
-  const d=new Date(at),last=c.msgs[c.msgs.length-1];const st=per(),pt=st?perText(st):'',nP=pickCount(2);
+  const d=new Date(at),last=c.msgs[c.msgs.length-1];const st=per(),hn=healthNote(),pt=(st?perText(st):'')+(hn?`。${hn}`:''),nP=pickCount(2);
   const prompt=`你正在扮演一個角色，在類似 LINE 的聊天軟體裡和「${meName()}」私訊。\n\n${persona(ch,true)}\n\n這則訊息會在星期${WD[d.getDay()]} ${pad(d.getHours())}:${pad(d.getMinutes())}（${meName()}那邊的時間）傳出。${last?`那時距離你們上一則訊息大約過了 ${Math.max(1,Math.round((at-last.ts)/36e5))} 小時。`:'你們還沒聊過天。'}你突然想主動傳訊息給${meName()}：可以分享你那時正在做的事、突然想到她、問候、碎碎念、或接續之前的話題，要符合角色個性和那個時間點。不要每次都問「在幹嘛」，也不要提到「通知」或「排程」。${pt?`（背景資訊，自然時才提：${pt}）`:''}\n\n最近的對話：\n${hist(c)}\n\n現在換「${ch.name}」傳訊息。${nP===1?'只傳 1 則':'傳 2 則，每則一行'}，簡短。只輸出訊息本身，不要加名字或引號。${RULE}`;
   const t=await ask(prompt,null,true);return lines(t,[ch.name]).map(l=>l.t).filter(Boolean).slice(0,nP);
 }
@@ -675,46 +683,96 @@ function vAI(){
   <p class="note">金鑰只存在這支手機的瀏覽器裡，不會傳給任何人。免費版的對話內容可能會被 Google 用來改進產品。</p></div>`;
   return h;
 }
+function hcfg(){const h=S.profile.health||(S.profile.health={});if(!h.goal)h.goal=8;if(!h.cup)h.cup=250;if(!Array.isArray(h.items))h.items=[];if(h.nudge===undefined)h.nudge=true;return h}
+const tmin=t=>{if(!t||!/^\d\d:\d\d$/.test(t))return null;const[a,b]=t.split(':').map(Number);return a*60+b};
+function sleepHrs(l){if(!l)return null;const a=tmin(l.sb),b=tmin(l.sw);if(a==null||b==null)return null;let d=b-a;if(d<=0)d+=1440;return d/60}
+const fmtH=x=>{const h=Math.floor(x),m=Math.round((x-h)*60);return m?`${h} 小時 ${m} 分`:`${h} 小時`};
+function avgBed(list){const v=list.map(tmin).filter(x=>x!=null).map(x=>x<720?x+1440:x);if(!v.length)return'';let m=Math.round(v.reduce((a,b)=>a+b,0)/v.length)%1440;return pad(Math.floor(m/60))+':'+pad(m%60)}
+function healthNote(){const h=hcfg(),L=dlog()[today()]||{},hr=new Date().getHours(),out=[];
+  if(h.nudge&&hr>=14&&typeof L.water==='number'&&L.water<h.goal)out.push(`${meName()}今天到現在只喝了 ${L.water} 杯水（目標 ${h.goal} 杯），如果自然的話可以提醒她喝水`);
+  const sh=sleepHrs(L);if(sh!=null&&sh<6)out.push(`${meName()}昨晚只睡了大約 ${fmtH(sh)}`);
+  return out.join('；')}
+function bars(vals,labels,opt={}){const W=340,H=150,pl=26,pr=8,pt=14,pb=22,n=vals.length,cw=(W-pl-pr)/n,mx=Math.max(opt.goal||0,...vals.map(v=>v||0),opt.min||1)*1.1;
+  const y=v=>pt+(H-pt-pb)*(1-v/mx);let g='';
+  vals.forEach((v,i)=>{if(v==null||v===0)return;const x=pl+i*cw+cw*0.18,w=cw*0.64;g+=`<rect x="${x.toFixed(1)}" y="${y(v).toFixed(1)}" width="${w.toFixed(1)}" height="${(H-pb-y(v)).toFixed(1)}" rx="${Math.min(3,w/2).toFixed(1)}" fill="${opt.color||'var(--ink)'}"/>`});
+  if(opt.goal)g+=`<line x1="${pl}" x2="${W-pr}" y1="${y(opt.goal).toFixed(1)}" y2="${y(opt.goal).toFixed(1)}" stroke="var(--acc)" stroke-dasharray="4 4" stroke-width="1.2"/><text x="${W-pr}" y="${(y(opt.goal)-4).toFixed(1)}" text-anchor="end" font-size="10" fill="var(--acc)">目標 ${opt.goal}</text>`;
+  const step=n>10?Math.ceil(n/6):1;labels.forEach((l,i)=>{if(i%step&&i!==n-1)return;g+=`<text x="${(pl+i*cw+cw/2).toFixed(1)}" y="${H-6}" text-anchor="middle" font-size="10" fill="var(--mut)">${l}</text>`});
+  g+=`<text x="2" y="${pt+8}" font-size="10" fill="var(--mut)">${Math.round(mx/1.1*10)/10}</text><line x1="${pl}" x2="${W-pr}" y1="${H-pb}" y2="${H-pb}" stroke="var(--line)"/>`;
+  return`<svg viewBox="0 0 ${W} ${H}" class="chart" role="img" aria-label="${esc(opt.label||'')}">${g}</svg>`}
+function line(vals,labels,opt={}){const W=340,H=150,pl=34,pr=10,pt=14,pb=22,n=vals.length,pts=vals.map((v,i)=>v==null?null:[i,v]).filter(Boolean);
+  if(pts.length<2)return`<p class="note" style="margin:6px 0 0">記錄兩天以上就會出現趨勢線。</p>`;
+  let lo=Math.min(...pts.map(p=>p[1])),hi=Math.max(...pts.map(p=>p[1]));if(hi-lo<1){lo-=0.5;hi+=0.5}const padv=(hi-lo)*0.15;lo-=padv;hi+=padv;
+  const x=i=>pl+(W-pl-pr)*(n<2?0.5:i/(n-1)),y=v=>pt+(H-pt-pb)*(1-(v-lo)/(hi-lo));
+  let g=`<polyline fill="none" stroke="${opt.color||'var(--ink)'}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" points="${pts.map(p=>x(p[0]).toFixed(1)+','+y(p[1]).toFixed(1)).join(' ')}"/>`;
+  pts.forEach(p=>{g+=`<circle cx="${x(p[0]).toFixed(1)}" cy="${y(p[1]).toFixed(1)}" r="3" fill="var(--bg)" stroke="${opt.color||'var(--ink)'}" stroke-width="1.6"/>`});
+  const step=n>10?Math.ceil(n/6):1;labels.forEach((l,i)=>{if(i%step&&i!==n-1)return;g+=`<text x="${x(i).toFixed(1)}" y="${H-6}" text-anchor="middle" font-size="10" fill="var(--mut)">${l}</text>`});
+  g+=`<text x="2" y="${pt+8}" font-size="10" fill="var(--mut)">${(hi).toFixed(1)}</text><text x="2" y="${H-pb}" font-size="10" fill="var(--mut)">${(lo).toFixed(1)}</text><line x1="${pl}" x2="${W-pr}" y1="${H-pb}" y2="${H-pb}" stroke="var(--line)"/>`;
+  return`<svg viewBox="0 0 ${W} ${H}" class="chart" role="img" aria-label="${esc(opt.label||'')}">${g}</svg>`}
+function vTrends(){const h=hcfg(),R=V.trend||7,lg=dlog(),t=dn(today());const ds_=Array.from({length:R},(_,i)=>ds(t-R+1+i)),labs=ds_.map(d=>md(d));
+  const water=ds_.map(d=>lg[d]&&typeof lg[d].water==='number'?lg[d].water:null),slp=ds_.map(d=>sleepHrs(lg[d])),wt=ds_.map(d=>lg[d]&&typeof lg[d].wt==='number'?lg[d].wt:null);
+  const avg=a=>{const v=a.filter(x=>x!=null);return v.length?v.reduce((p,c)=>p+c,0)/v.length:null};
+  let o=`<div class="sec"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px"><h2 style="margin:0">趨勢</h2><div class="chips">${[[7,'7 天'],[30,'30 天']].map(([v,l])=>`<button class="chip ${R===v?'on':''}" data-act="trend" data-id="${v}">${l}</button>`).join('')}</div></div>`;
+  const aw=avg(water);o+=`<div class="tc"><div class="th"><b>喝水</b><span>${aw!=null?`平均 ${aw.toFixed(1)} 杯／天`:'還沒有紀錄'}</span></div>${bars(water,labs,{goal:h.goal,min:h.goal,label:'喝水杯數'})}</div>`;
+  const as=avg(slp),bed=avgBed(ds_.map(d=>lg[d]&&lg[d].sb).filter(Boolean));o+=`<div class="tc"><div class="th"><b>睡眠</b><span>${as!=null?`平均 ${fmtH(as)}${bed?` · 平均 ${bed} 入睡`:''}`:'還沒有紀錄'}</span></div>${bars(slp.map(v=>v==null?null:Math.round(v*10)/10),labs,{goal:8,min:8,label:'睡眠時數',color:'var(--mut)'})}</div>`;
+  const lw=wt.filter(x=>x!=null);o+=`<div class="tc"><div class="th"><b>體重</b><span>${lw.length?`最近 ${lw[lw.length-1]} kg`:'還沒有紀錄'}</span></div>${lw.length?line(wt,labs,{label:'體重'}):''}</div>`;
+  for(const it of h.items.filter(x=>x.type==='num')){const v=ds_.map(d=>{const x=lg[d]&&lg[d].cx&&lg[d].cx[it.id];return typeof x==='number'?x:null});const a=avg(v);
+    o+=`<div class="tc"><div class="th"><b>${esc(it.name)}</b><span>${a!=null?`平均 ${Math.round(a*10)/10}${esc(it.unit||'')}`:'還沒有紀錄'}</span></div>${a!=null?bars(v,labs,{label:it.name}):''}</div>`}
+  for(const it of h.items.filter(x=>x.type==='check')){const n=ds_.filter(d=>lg[d]&&lg[d].cx&&lg[d].cx[it.id]).length;
+    o+=`<div class="tc"><div class="th"><b>${esc(it.name)}</b><span>${R} 天裡有 ${n} 天</span></div><div class="dots">${ds_.map(d=>`<i class="${lg[d]&&lg[d].cx&&lg[d].cx[it.id]?'on':''}" title="${md(d)}"></i>`).join('')}</div></div>`}
+  return o+`</div>`}
 function vCycle(){
-  const p=S.profile.period,st=per();
-  let h=head('週期',st?`<button class="icon" data-act="perEdit" aria-label="週期設定">${ic('gear')}</button>`:'');
-  if(!st||V.perEdit){
+  const p=S.profile.period,st=per(),hc=hcfg();
+  let h=head('健康',`<button class="icon" data-act="perEdit" aria-label="健康設定">${ic('gear')}</button>`);
+  if(V.perEdit){
     const last=st?st.last:'',cyc=p?.cycle||28,len=p?.len||5,adv=p?.adv??2;
-    return h+`${st?'':'<p class="note" style="padding:0 20px">先填一次上次的日期，SynDay 就能幫你預測下一次，也能請角色在那幾天特別關心你。</p>'}<div class="form"><label>最近一次開始的日期<input type="date" id="p-last" value="${last}" max="${today()}"></label><label>週期大約幾天 <em>記錄兩次以上後會自動用平均值</em><input type="number" id="p-cyc" value="${cyc}" min="18" max="45"></label><label>經期大約幾天<input type="number" id="p-len" value="${len}" min="2" max="10"></label>
-    <div><div style="font-weight:600;font-size:13px;margin-bottom:6px">誰來關心你（可以選好幾個）</div>${Object.keys(S.chars).length?Object.keys(S.chars).map(id=>`<label class="chk"><input type="checkbox" class="p-by" value="${id}" ${byList().includes(id)?'checked':''}>${av(id,'s')}${esc(chName(id))}</label>`).join(''):'<p class="note" style="margin:0">先到「角色」建立角色。</p>'}</div><label>提前幾天開始關心<input type="number" id="p-adv" value="${adv}" min="0" max="5"></label>
-    <div class="btns"><button class="btn" data-act="savePer">儲存</button>${st?'<button class="btn ghost" data-act="perCancel">取消</button>':''}</div></div>`;
+    return h+`<div class="form"><div style="font-weight:600;font-size:15px">生理期（選填）</div><label>最近一次開始的日期 <em>不記錄生理期的話可以留空</em><input type="date" id="p-last" value="${last}" max="${today()}"></label><label>週期大約幾天 <em>記錄兩次以上後會自動用平均值</em><input type="number" id="p-cyc" value="${cyc}" min="18" max="45"></label><label>經期大約幾天<input type="number" id="p-len" value="${len}" min="2" max="10"></label>
+    <div><div style="font-weight:600;font-size:13px;margin-bottom:6px">誰來關心你（可以選好幾個）</div>${Object.keys(S.chars).length?Object.keys(S.chars).map(id=>`<label class="chk"><input type="checkbox" class="p-by" value="${id}" ${byList().includes(id)?'checked':''}>${av(id,'s')}${esc(chName(id))}</label>`).join(''):'<p class="note" style="margin:0">先到「角色」建立角色。</p>'}</div><label>經期前幾天開始關心<input type="number" id="p-adv" value="${adv}" min="0" max="5"></label>
+    <div style="font-weight:600;font-size:15px;margin-top:8px">喝水與體重</div>
+    <label>每天喝水目標（杯）<input type="number" id="h-goal" value="${hc.goal}" min="1" max="20"></label><label>一杯大約幾 ml<input type="number" id="h-cup" value="${hc.cup}" min="50" max="1000" step="50"></label>
+    <label class="chk"><input type="checkbox" id="h-nudge" ${hc.nudge?'checked':''}>水喝太少時，讓角色提醒我</label>
+    <label class="chk"><input type="checkbox" id="h-share" ${hc.shareWt?'checked':''}>讓角色知道我的體重</label>
+    <div style="font-weight:600;font-size:15px;margin-top:8px">自訂紀錄</div>
+    ${hc.items.length?hc.items.map(it=>`<div class="aiok" style="margin:0"><b>${esc(it.name)}</b><span>${{check:'打勾',num:'數字'+(it.unit?'（'+esc(it.unit)+'）':''),text:'文字'}[it.type]}<button class="btn sm ghost" style="margin-left:8px" data-act="cxDel" data-id="${it.id}">刪除</button></span></div>`).join(''):'<p class="note" style="margin:0">例如：吃維他命（打勾）、步數（數字）、今天的運動（文字）。</p>'}
+    <div class="btns" style="align-items:center"><input type="text" id="cx-name" placeholder="項目名稱" maxlength="12" style="flex:1;min-width:120px"><select id="cx-type" style="width:auto"><option value="check">打勾</option><option value="num">數字</option><option value="text">文字</option></select><input type="text" id="cx-unit" placeholder="單位（選填）" maxlength="6" style="width:110px"><button class="btn sm ghost" data-act="cxAdd">新增</button></div>
+    <div class="btns" style="margin-top:6px"><button class="btn" data-act="savePer">儲存</button><button class="btn ghost" data-act="perCancel">取消</button></div></div>`;
   }
-  const big={in:`經期第 ${st.day} 天`,soon:`還有 ${st.to} 天`,normal:`還有 ${st.to} 天`,due:'預計今天',late:`晚了 ${-st.to} 天`}[st.kind];
-  const lbl={in:'經期中',soon:'快來了',normal:'距離下次經期',due:'下次經期',late:'比預期晚'}[st.kind];
-  h+=`<div class="sumc"><div><div class="lbl">${lbl}</div><div class="big">${big}</div><div class="subt">下次預計 ${md(st.next)} · 週期 ${st.cyc} 天${st.avg?'（平均）':''}</div></div>${st.kind!=='in'?'<button class="btn sm" data-act="perToday">今天來了</button>':''}</div>`;
-  const byL=byList(),by=byL[0]||'',busyBy=byL.filter(x=>busy['dm_'+x]),lc=p.lastCare;
+  if(st){const big={in:`經期第 ${st.day} 天`,soon:`還有 ${st.to} 天`,normal:`還有 ${st.to} 天`,due:'預計今天',late:`晚了 ${-st.to} 天`}[st.kind];
+    const lbl={in:'經期中',soon:'快來了',normal:'距離下次經期',due:'下次經期',late:'比預期晚'}[st.kind];
+    h+=`<div class="sumc"><div><div class="lbl">${lbl}</div><div class="big">${big}</div><div class="subt">下次預計 ${md(st.next)} · 週期 ${st.cyc} 天${st.avg?'（平均）':''}</div></div>${st.kind!=='in'?'<button class="btn sm" data-act="perToday">今天來了</button>':''}</div>`}
+  else h+=`<p class="note" style="padding:4px 20px 0">想記錄生理期的話，按右上角的齒輪填一次上次的日期，就能預測下一次，也能請角色在那幾天特別關心你。</p>`;
+  const byL=byList(),by=byL[0]||'',busyBy=byL.filter(x=>busy['dm_'+x]),lc=p&&p.lastCare;
   if(busyBy.length&&(V.selDay||today())!==today())h+=busyBy.map(x=>`<div class="care">${av(x,'s')}<div class="body"><b>${esc(chName(x))}</b><div class="tx" style="color:var(--mut)">正在輸入…</div></div></div>`).join('');
   else if(lc&&S.chars[lc.by]&&Date.now()-lc.ts<3*864e5&&dOf(lc.ts)!==(V.selDay||today()))h+=`<div class="care">${av(lc.by,'s')}<div class="body"><b>${esc(chName(lc.by))}</b><time>${ago(lc.ts)}</time><div class="tx">${esc(lc.t)}</div></div><button class="btn sm ghost" data-act="dm" data-id="${lc.by}">回覆</button></div>`;
-  else if(!by)h+=`<p class="note" style="padding:0 20px">按右上角的齒輪選幾個角色，他們就會在經期前後關心你，也能看你記錄的狀態。</p>`;
   const cm=V.calM||today().slice(0,7),[y,mo]=cm.split('-').map(Number);
   const dow=new Date(Date.UTC(y,mo-1,1)).getUTCDay(),days=new Date(Date.UTC(y,mo,0)).getUTCDate();
   const m=cycleMap(),lg=dlog(),t=today(),sel=V.selDay||t,cl=careLog();
   let cells='';for(let i=0;i<dow;i++)cells+='<i></i>';
   for(let d=1;d<=days;d++){const k=`${y}-${pad(mo)}-${pad(d)}`;cells+=`<button class="cd ${m[k]||''} ${k===t?'td':''} ${k===sel?'sel':''} ${hasLog(lg[k])?'lg':''}" data-act="day" data-id="${k}" aria-label="${mo}月${d}日${cl[k]?'，有角色的話':''}">${cl[k]?'<em class="hc">♥</em>':''}<span>${d}</span></button>`}
   h+=`<div class="cal"><div class="calh"><button class="icon" data-act="calMove" data-id="-1" aria-label="上個月">${ic('back')}</button><b>${y} 年 ${mo} 月</b><button class="icon" data-act="calMove" data-id="1" aria-label="下個月">${ic('fwd')}</button></div><div class="wk">${[...WD].map(w=>`<span>${w}</span>`).join('')}</div><div class="cg">${cells}</div></div>
-  <div class="legend"><span><i style="background:var(--acc)"></i>經期</span><span><i style="border:1.5px dashed var(--acc)"></i>預測經期</span><span><i style="border:1.5px dashed var(--mut)"></i>排卵日（推估）</span><span><i style="background:var(--ink);width:6px;height:6px"></i>有紀錄</span><span><b style="color:var(--acc);font-weight:400;margin-right:4px">♥</b>角色的話</span></div>`;
-  const L=lg[sel]||{},[,sm,sd]=sel.split('-').map(Number),isStart=(p.hist||[]).includes(sel),fut=sel>t;
+  <div class="legend">${st?'<span><i style="background:var(--acc)"></i>經期</span><span><i style="border:1.5px dashed var(--acc)"></i>預測經期</span><span><i style="border:1.5px dashed var(--mut)"></i>排卵日（推估）</span>':''}<span><i style="background:var(--ink);width:6px;height:6px"></i>有紀錄</span><span><b style="color:var(--acc);font-weight:400;margin-right:4px">♥</b>角色的話</span></div>`;
+  const L=lg[sel]||{},[,sm,sd]=sel.split('-').map(Number),isStart=!!(p&&(p.hist||[]).includes(sel)),fut=sel>t;
   const tag=m[sel]==='pp'?'經期':m[sel]==='pred'?'預測經期':m[sel]==='ov'?'排卵日（推估）':'';
   h+=`<div class="day"><h3>${sm} 月 ${sd} 日（${WD[new Date(Date.UTC(y,sm-1,sd)).getUTCDay()]}）${sel===t?' · 今天':''}</h3>${tag?`<div class="tag">${tag}</div>`:''}`;
   const dc=(cl[sel]||[]).filter(r=>S.chars[r.by]);
   if(dc.length)h+=`<div class="cares">${dc.map(r=>`<div class="care">${av(r.by,'s')}<div class="body"><b>${esc(chName(r.by))}</b><time>${fmtT(r.ts)}${r.kind==='log'?' · 回應你的紀錄':' · 主動關心'}</time><div class="tx">${esc(r.t)}</div></div><button class="btn sm ghost" data-act="dm" data-id="${r.by}">回覆</button></div>`).join('')}</div>`;
   if(sel===t)h+=busyBy.map(x=>`<div class="care">${av(x,'s')}<div class="body"><b>${esc(chName(x))}</b><div class="tx" style="color:var(--mut)">正在輸入…</div></div></div>`).join('');
-  if(fut&&by&&(m[sel]==='pred'||(dn(sel)>=dn(st.next)-(p.adv??2)&&dn(sel)<dn(st.next))))h+=`<div class="soon">${m[sel]==='pred'?'預計是經期。':'經期快到了。'}${esc(byL.map(chName).join('、'))}會在這幾天傳訊息關心你。</div>`;
+  if(fut&&st&&byL.length&&(m[sel]==='pred'||(dn(sel)>=dn(st.next)-(p.adv??2)&&dn(sel)<dn(st.next))))h+=`<div class="soon">${m[sel]==='pred'?'預計是經期。':'經期快到了。'}${esc(byL.map(chName).join('、'))}會在這幾天傳訊息關心你。</div>`;
   if(fut)h+=`<p class="note">還沒到這一天，到時候再來記錄吧。</p>`;
-  else{
-    h+=`<h4>經血量</h4><div class="chips">${FLOW.map(([v,l])=>`<button class="chip ${L.flow===v?'on':''}" data-act="lgFlow" data-id="${v}">${l}</button>`).join('')}</div>
+  else{const sh=sleepHrs(L),cups=typeof L.water==='number'?L.water:0;
+    h+=`${st?`<h4>經血量</h4><div class="chips">${FLOW.map(([v,l])=>`<button class="chip ${L.flow===v?'on':''}" data-act="lgFlow" data-id="${v}">${l}</button>`).join('')}</div>`:''}
     <h4>身體</h4><div class="chips">${SYM.map(v=>`<button class="chip ${(L.sym||[]).includes(v)?'on':''}" data-act="lgSym" data-id="${v}">${v}</button>`).join('')}</div>
     <h4>心情</h4><div class="chips">${MOOD.map(v=>`<button class="chip ${L.mood===v?'on':''}" data-act="lgMood" data-id="${v}">${v}</button>`).join('')}</div>
+    <h4>喝水</h4><div class="wtr"><button class="icon" data-act="wMinus" aria-label="少一杯" style="border:1px solid var(--sf2)">－</button><div class="wv"><b>${cups}</b> / ${hc.goal} 杯<small>${cups*hc.cup} ml</small><div class="wbar"><i style="width:${Math.min(100,cups/hc.goal*100)}%"></i></div></div><button class="icon" data-act="wPlus" aria-label="多一杯" style="background:var(--meb);color:var(--met)">＋</button></div>
+    <h4>睡眠（前一晚）</h4><div class="slp"><label>入睡<input type="time" id="d-sb" value="${esc(L.sb||'')}"></label><label>起床<input type="time" id="d-sw" value="${esc(L.sw||'')}"></label><span class="sh">${sh!=null?fmtH(sh):''}</span></div>
+    <h4>體重</h4><div class="slp"><label style="flex:0 1 160px">kg<input type="number" id="d-wt" step="0.1" min="20" max="300" inputmode="decimal" value="${typeof L.wt==='number'?L.wt:''}" placeholder="選填"></label></div>
+    ${hc.items.map(it=>{const v=L.cx&&L.cx[it.id];return it.type==='check'?`<h4>${esc(it.name)}</h4><div class="chips"><button class="chip ${v?'on':''}" data-act="cxTog" data-id="${it.id}">${v?'✓ 有':'還沒'}</button></div>`
+      :it.type==='num'?`<h4>${esc(it.name)}</h4><div class="slp"><label style="flex:0 1 160px">${esc(it.unit||'數值')}<input type="number" class="cxv" data-id="${it.id}" step="any" inputmode="decimal" value="${typeof v==='number'?v:''}"></label></div>`
+      :`<h4>${esc(it.name)}</h4><textarea class="cxv" data-id="${it.id}" style="min-height:52px">${esc(v||'')}</textarea>`}).join('')}
     <h4>想說的話</h4><textarea id="d-note" placeholder="今天的狀況、想記下來的事…">${esc(drafts['d-note']??L.note??'')}</textarea>
     <div class="btns" style="margin-top:14px">${sel===t&&byL.length?`<button class="btn" data-act="tellChar" ${busyBy.length?'disabled':''}>${byL.length>1?'告訴大家':'告訴'+esc(chName(by))}</button>`:''}<button class="btn ghost" data-act="${isStart?'unStart':'startHere'}">${isStart?'取消「這天開始」':'這天開始經期'}</button></div>`;
   }
-  h+=`</div>`;
-  if(st.hist.length)h+=`<div class="sec" style="border:0;padding-top:0"><h2>開始日紀錄</h2><div class="hist" style="margin:0">${st.hist.slice(-8).reverse().map(d=>`<span>${md(d)}</span>`).join('')}</div></div>`;
+  h+=`</div>`+vTrends();
+  if(st&&st.hist.length)h+=`<div class="sec" style="border:0"><h2>經期開始日紀錄</h2><div class="hist" style="margin:0">${st.hist.slice(-8).reverse().map(d=>`<span>${md(d)}</span>`).join('')}</div></div>`;
   return h;
 }
 function vMe(){
@@ -723,7 +781,7 @@ function vMe(){
   h+=`<div class="sec"><h2>角色主動傳訊息</h2><div class="form" style="padding:0"><label>多久找你一次<select id="pro-freq">${[['off','關閉'],['rare','偶爾（約 8 小時）'],['some','有時候（約 4 小時）'],['often','常常（約 1.5 小時）'],['clingy','很黏人（約 30 分鐘）']].map(([v,l])=>`<option value="${v}" ${fq===v?'selected':''}>${l}</option>`).join('')}</select></label></div><p class="note">你打開 SynDay 的時候，好一陣子沒聊天的角色會傳訊息給你；頁面開著時也會不定時收到。${pushOn()?'手機通知已開啟，關掉 SynDay 時也會收到。':'想在關掉 SynDay 時也收到，可以在下面開啟手機通知。'}每個角色可以在「角色」裡個別關掉。</p></div>`;
   {const q=quietCfg(),hrs=Array.from({length:24},(_,i)=>i),on=pushOn(),cnt=(S.pushq||[]).filter(x=>x.at>Date.now()).length;
   h+=`<div class="sec"><h2>手機通知</h2>`;
-  if(on)h+=`<div class="aiok"><b>通知已開啟</b><span>${cnt?`已排好 ${cnt} 則`:'正在安排…'}</span></div><div class="btns" style="margin-bottom:14px"><button class="btn ghost" data-act="pushTest">傳一則測試通知</button><button class="btn ghost" data-act="pushOff">關閉通知</button></div>`;
+  if(on)h+=`<div class="aiok"><b>通知已開啟</b><span>${cnt?`已排好 ${cnt} 則`:'正在安排…'}</span></div><div class="btns" style="margin-bottom:14px"><button class="btn ghost" data-act="pushTest">傳一則測試通知</button><button class="btn ghost" data-act="pushTestChar" ${busy.ptc?'disabled':''}>${busy.ptc?'角色正在寫…':'測試角色傳訊息'}</button><button class="btn ghost" data-act="pushOff">關閉通知</button></div>`;
   else if(isIOS&&!isStandalone())h+=`<p class="note" style="margin:0 0 12px">iPhone 要先把 SynDay 加到主畫面（Safari 的分享 →「加入主畫面」），再從主畫面的圖示打開，才能開通知。</p>`;
   if(!on)h+=`<div class="form" style="padding:0">${PUSH_DEFAULT?'':`<label>小幫手網址 <em>從 Cloudflare 複製過來的網址，像 https://synday-push.xxx.workers.dev</em><input type="text" id="push-url" value="${esc(drafts['push-url']??PUSH.url??'')}" placeholder="https://" autocomplete="off" spellcheck="false" inputmode="url"></label>`}<div class="btns"><button class="btn" data-act="pushOn" ${busy.push?'disabled':''}>${busy.push?'設定中…':'開啟通知'}</button></div></div>`;
   h+=`<div class="form" style="padding:0;margin-top:16px"><label class="chk"><input type="checkbox" id="q-on" ${q.on?'checked':''}>勿擾時段（這段時間角色不會傳訊息）</label>${q.on?`<div class="btns" style="align-items:center"><select id="q-from" style="width:auto">${hrs.map(x=>`<option value="${x}" ${q.from===x?'selected':''}>${x}:00</option>`).join('')}</select><span>到</span><select id="q-to" style="width:auto">${hrs.map(x=>`<option value="${x}" ${q.to===x?'selected':''}>${x}:00</option>`).join('')}</select></div>`:''}</div>
@@ -744,7 +802,7 @@ function render(){
   const s=V.sub;let body;
   if(s?.k==='conv')body=vConv(s.id);else if(s?.k==='post')body=vPost(s.id);else if(s?.k==='char')body=vCharEdit(s.id);else if(s?.k==='group')body=vGroup();
   else body={chats:vChats,feed:vFeed,chars:vChars,cycle:vCycle,me:vMe}[V.tab]();
-  const tabs=s?'':`<nav class="tabs">${[['chats','聊天','chat'],['feed','動態','feed'],['cycle','週期','cal'],['chars','角色','chars'],['me','我','me']].map(([k,l,i])=>`<button class="${V.tab===k?'on':''}" data-act="tab" data-id="${k}" aria-label="${l}">${ic(i)}<span class="sr">${l}</span>${k==='chats'&&(careDue()||anyUnread())&&V.tab!=='chats'?'<span class="dot"></span>':''}</button>`).join('')}</nav>`;
+  const tabs=s?'':`<nav class="tabs">${[['chats','聊天','chat'],['feed','動態','feed'],['cycle','健康','cal'],['chars','角色','chars'],['me','我','me']].map(([k,l,i])=>`<button class="${V.tab===k?'on':''}" data-act="tab" data-id="${k}" aria-label="${l}">${ic(i)}<span class="sr">${l}</span>${k==='chats'&&(careDue()||anyUnread())&&V.tab!=='chats'?'<span class="dot"></span>':''}</button>`).join('')}</nav>`;
   app.innerHTML=`${body.startsWith('<header')?'':''}${body.replace(/^(<header[\s\S]*?<\/header>)/,'$1<main>')}</main>${tabs}`;
   if(fid){const el=document.getElementById(fid);if(el){el.focus({preventScroll:true});try{el.setSelectionRange(sel,sel)}catch(e){}}}
   document.querySelectorAll('.inbar textarea').forEach(grow);
@@ -818,6 +876,12 @@ const act={
     try{if(idb){const tx=idb.transaction('kv','readwrite');tx.objectStore('kv').delete('state'+sfx(id))}}catch(e){}
     try{localStorage.removeItem('jiaoseq-v1'+sfx(id));localStorage.removeItem('jiaoseq-ai'+sfx(id))}catch(e){}
     SLOTS=SLOTS.filter(x=>x.id!==id);lsSet('jiaoseq-slots',SLOTS);render();toast('已刪除這個存檔')},
+  pushTestChar:async()=>{if(!pushOn()){toast('先開啟通知');return}if(!AI.key){toast('先設定 Gemini 金鑰');return}
+    const ids=Object.keys(S.chars);if(!ids.length){toast('先建立一個角色');return}const pool=ids.filter(i=>S.chars[i].pro!==false);const cid=(pool.length?pool:ids)[Math.floor(Math.random()*(pool.length?pool:ids).length)];
+    busy.ptc=true;render();const at=Date.now()+60e3;let t=null;try{ensureDM(cid);t=await genPro(cid,at)}catch(e){}
+    delete busy.ptc;if(!t||!t.length){render();toast('角色沒寫出訊息，再試一次');return}
+    (S.pushq||(S.pushq=[])).push({id:nid(),cid,at,t});save();lastSync='';await syncPush(true);render();
+    toast(`安排好了！現在回到手機桌面（不要停在 SynDay），1～6 分鐘內會收到${chName(cid)}的通知`)},
   pushOn:()=>enablePush(),pushOff:()=>disablePush(),pushTest:()=>testPush(),
   rmMeImg:()=>{S.profile.img='';save('profile','p');render()},
   pickMsg:i=>{const cv=V.sub&&V.sub.id;if(!cv)return;V.pick=(V.pick&&V.pick.cv===cv&&V.pick.i===+i)?null:{cv,i:+i};render()},
@@ -832,8 +896,8 @@ const act={
   lgFlow:v=>{const d=V.selDay||today(),L=dlog()[d]||(dlog()[d]={});L.flow=L.flow===v?'':v;tidy(d);save();render()},
   lgSym:v=>{const d=V.selDay||today(),L=dlog()[d]||(dlog()[d]={});const a=L.sym||[];L.sym=a.includes(v)?a.filter(x=>x!==v):[...a,v];tidy(d);save();render()},
   lgMood:v=>{const d=V.selDay||today(),L=dlog()[d]||(dlog()[d]={});L.mood=L.mood===v?'':v;tidy(d);save();render()},
-  startHere:()=>{const d=V.selDay||today(),p=S.profile.period;if(!p.hist.includes(d))p.hist=[...p.hist,d].sort().slice(-24);if(d===today()){p.lastRemind='';p.rem={}}save();toast(`已記錄 ${md(d)} 開始`);render()},
-  unStart:()=>{const d=V.selDay||today(),p=S.profile.period;if(p.hist.length<=1){toast('至少要留一筆開始日，可以到齒輪裡修改');return}p.hist=p.hist.filter(x=>x!==d);save();render()},
+  startHere:()=>{const d=V.selDay||today();if(!S.profile.period)S.profile.period={hist:[],cycle:28,len:5,by:[],adv:2,rem:{}};const p=S.profile.period;p.hist=p.hist||[];if(!p.hist.includes(d))p.hist=[...p.hist,d].sort().slice(-24);if(d===today()){p.lastRemind='';p.rem={}}save();toast(`已記錄 ${md(d)} 開始`);render()},
+  unStart:()=>{const d=V.selDay||today(),p=S.profile.period;if(!p)return;if(p.hist.length<=1){toast('至少要留一筆開始日，可以到齒輪裡修改');return}p.hist=p.hist.filter(x=>x!==d);save();render()},
   tellChar:async()=>{const L0=byList();if(!L0.length)return;const el=$('#d-note');if(el){const L=dlog()[today()]||(dlog()[today()]={});L.note=el.value.trim();tidy(today());save()}
     if(!logText(today())){toast('先選一下今天的狀態');return}toast(L0.length>1?'已經告訴大家了':`已經告訴${chName(L0[0])}了`);
     const order=[...L0].sort(()=>Math.random()-.5);for(let i=0;i<order.length;i++){if(i)await sleep(4e3+Math.random()*12e3);ensureDM(order[i]);replyDM('dm_'+order[i],'log')}},
@@ -852,10 +916,17 @@ const act={
   rmPhoto:i=>{const f=postFiles.splice(+i,1)[0];if(f)URL.revokeObjectURL(f.url);render()},
   zoom:(_,b)=>{const lb=$('#lb');lb.querySelector('img').src=b.src;lb.classList.add('on')},
   like:id=>{const p=S.posts[id];p.liked=!p.liked;save('posts',id);render()},
-  savePer:()=>{const last=$('#p-last').value;if(!last){toast('填一下最近一次開始的日期');return}
-    const p=S.profile.period||{hist:[]};const h=new Set(p.hist||[]);if(V.perEdit&&per())h.delete(per().last);h.add(last);
-    S.profile.period={...p,hist:[...h].sort().slice(-24),cycle:+$('#p-cyc').value||28,len:+$('#p-len').value||5,by:[...document.querySelectorAll('.p-by:checked')].map(x=>x.value),rem:p.rem||{},adv:+$('#p-adv').value};
+  savePer:()=>{const last=$('#p-last').value,hc=hcfg();
+    hc.goal=Math.max(1,Math.min(20,+$('#h-goal').value||8));hc.cup=Math.max(50,Math.min(1000,+$('#h-cup').value||250));hc.nudge=$('#h-nudge').checked;hc.shareWt=$('#h-share').checked;
+    const p=S.profile.period||{hist:[]};const hs=new Set(p.hist||[]);if(last){if(per())hs.delete(per().last);hs.add(last)}
+    S.profile.period={...p,hist:[...hs].sort().slice(-24),cycle:+$('#p-cyc').value||28,len:+$('#p-len').value||5,by:[...document.querySelectorAll('.p-by:checked')].map(x=>x.value),rem:p.rem||{},adv:+$('#p-adv').value};
     V.perEdit=false;save('profile','p');render();setTimeout(careRun,1500)},
+  cxAdd:()=>{const n=($('#cx-name').value||'').trim();if(!n){toast('先輸入項目名稱');return}const hc=hcfg();if(hc.items.length>=12){toast('最多 12 個自訂項目');return}hc.items.push({id:'x'+nid(),name:n.slice(0,12),type:$('#cx-type').value,unit:($('#cx-unit').value||'').trim().slice(0,6)});save();render()},
+  cxDel:id=>{const hc=hcfg();hc.items=hc.items.filter(x=>x.id!==id);save();render()},
+  cxTog:id=>{const d=V.selDay||today(),L=dlog()[d]||(dlog()[d]={});L.cx=L.cx||{};L.cx[id]=!L.cx[id];tidy(d);save();render()},
+  wPlus:()=>{const d=V.selDay||today(),L=dlog()[d]||(dlog()[d]={});L.water=Math.min(30,(L.water||0)+1);save();render()},
+  wMinus:()=>{const d=V.selDay||today(),L=dlog()[d]||(dlog()[d]={});L.water=Math.max(0,(L.water||0)-1);tidy(d);save();render()},
+  trend:v=>{V.trend=+v;render()},
   perEdit:()=>{V.perEdit=true;render()},perCancel:()=>{V.perEdit=false;render()},
   perToday:()=>{const p=S.profile.period;if(!p.hist.includes(today()))p.hist=[...p.hist,today()].sort().slice(-24);p.lastRemind='';p.rem={};save('profile','p');toast('已記錄，好好休息');render()},
   perUndo:()=>{const p=S.profile.period;p.hist=[...p.hist].sort().slice(0,-1);save('profile','p');render()},
@@ -880,6 +951,10 @@ app.addEventListener('change',e=>{const t=e.target;
     if(t.files.length>4)toast('一次最多傳 4 張');
     (async()=>{for(const f of fs){try{const u=await shrink(f,1280,180000);push(id,'me','',u);save('convs',id);render();window.scrollTo(0,document.body.scrollHeight)}catch(e){toast('有照片讀不出來，換一張試試')}}schedReply(id,2200)})()}
   if(t.id==='me-file'&&t.files[0]){const f=t.files[0];t.value='';const fr=new FileReader();fr.onload=()=>{const im=new Image();im.onload=()=>{const cv=document.createElement('canvas');cv.width=cv.height=200;const x=cv.getContext('2d'),q=Math.min(im.width,im.height);x.drawImage(im,(im.width-q)/2,(im.height-q)/2,q,q,0,0,200,200);S.profile.img=cv.toDataURL('image/jpeg',.85);save('profile','p');render();toast('大頭貼換好了')};im.onerror=()=>toast('這張圖片讀不出來');im.src=fr.result};fr.readAsDataURL(f)}
+  if(t.id==='d-sb'||t.id==='d-sw'){const d=V.selDay||today(),L=dlog()[d]||(dlog()[d]={});L[t.id==='d-sb'?'sb':'sw']=t.value;tidy(d);save();render()}
+  if(t.id==='d-wt'){const d=V.selDay||today(),L=dlog()[d]||(dlog()[d]={});const v=parseFloat(t.value);if(isFinite(v)&&v>=20&&v<=300)L.wt=Math.round(v*10)/10;else delete L.wt;tidy(d);save();render()}
+  if(t.classList&&t.classList.contains('cxv')){const d=V.selDay||today(),L=dlog()[d]||(dlog()[d]={}),id=t.dataset.id,it=hcfg().items.find(x=>x.id===id);L.cx=L.cx||{};
+    if(it&&it.type==='num'){const v=parseFloat(t.value);if(isFinite(v))L.cx[id]=v;else delete L.cx[id]}else{const v=t.value.trim();if(v)L.cx[id]=v.slice(0,300);else delete L.cx[id]}tidy(d);save();if(it&&it.type==='num')render()}
   if(t.id==='d-note'){const d=V.selDay||today(),L=dlog()[d]||(dlog()[d]={});L.note=t.value.trim();delete drafts['d-note'];tidy(d);save()}
   if(t.id==='q-on'||t.id==='q-from'||t.id==='q-to'){const q=quietCfg();if(t.id==='q-on')q.on=t.checked;else q[t.id==='q-from'?'from':'to']=+t.value;S.profile.quiet=q;
     if(S.pushq){const now=Date.now();S.pushq=S.pushq.filter(x=>x.at<=now||!inQuiet(x.at))}save();render();syncPush();planPush()}
