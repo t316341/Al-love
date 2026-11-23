@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="zh-Hant"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>角色圈</title>
+<title>SynDay 共時</title>
 <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)"><meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)">
-<meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="角色圈">
+<meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="SynDay">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Noto+Sans+TC:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
 /* VOICE: quiet, premium — the restraint of Threads and Instagram
@@ -22,7 +22,7 @@ header h1{font-size:22px;font-weight:600;letter-spacing:-.01em;margin:0;flex:1;l
 header h1 small{font-size:12px;font-weight:400;color:var(--mut);margin-left:8px}
 header.sub{padding-left:4px}header.sub h1{font-size:16px;font-weight:600;text-align:center;padding-right:44px}
 main{flex:1;padding-bottom:96px}
-nav.tabs{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:520px;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));background:color-mix(in srgb,var(--bg) 92%,transparent);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);border-top:1px solid var(--line);z-index:6;padding-bottom:env(safe-area-inset-bottom)}
+nav.tabs{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:520px;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));background:color-mix(in srgb,var(--bg) 92%,transparent);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);border-top:1px solid var(--line);z-index:6;padding-bottom:env(safe-area-inset-bottom)}
 nav.tabs button{background:none;border:0;color:var(--mut);padding:0;display:grid;place-items:center;min-height:60px;cursor:pointer;position:relative}
 nav.tabs button.on{color:var(--ink)}nav.tabs button.on svg{stroke-width:2.2}
 nav.tabs svg{width:27px;height:27px}
@@ -129,6 +129,50 @@ textarea:focus,input:focus,select:focus{outline:none;border-color:var(--ink)!imp
 #toast{position:fixed;left:50%;bottom:92px;transform:translateX(-50%);background:var(--meb);color:var(--met);padding:10px 18px;border-radius:12px;font-size:14px;max-width:min(90vw,440px);z-index:20;opacity:0;pointer-events:none;transition:opacity .2s}
 #toast.on{opacity:1}
 .loading{padding:80px 20px;text-align:center;color:var(--mut)}
+.mimg{max-width:min(230px,62vw);max-height:300px;border-radius:18px;display:block;cursor:zoom-in;object-fit:cover;background:var(--sf)}
+.m .col{align-items:flex-start;gap:3px}.m.me .col{align-items:flex-end}
+.m .gone{font-size:13px;color:var(--mut);padding:9px 15px;border-radius:20px;border:1px dashed var(--sf2)}
+.hc{position:absolute;top:2px;left:12%;font-size:11px;color:var(--acc);font-style:normal;line-height:1;pointer-events:none}
+.day .care{margin:10px 0 0}.day .cares{margin-top:14px}
+.day .soon{margin:12px 0 0;border:1px dashed var(--sf2);border-radius:14px;padding:12px 14px;font-size:14px;color:var(--mut)}
+.pick{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(64px + env(safe-area-inset-bottom));width:calc(100% - 24px);max-width:496px;background:var(--bg);border:1px solid var(--sf2);border-radius:18px;padding:14px;z-index:8;box-shadow:0 8px 30px rgba(0,0,0,.12)}
+.pick .q{font-size:13px;color:var(--mut);margin:0 0 10px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.m .bb{cursor:pointer}.m .bb.on{outline:2px solid var(--ink);outline-offset:2px}
+.av.xs{width:22px;height:22px;font-size:10px;box-shadow:0 0 0 2px var(--bg)}
+.rep{display:flex;align-items:center;gap:8px;margin:2px 0 4px;color:var(--mut);font-size:13px}
+.rep .avs{display:flex}.rep .avs .av{margin-right:-6px}.rep .avs .av:last-child{margin-right:0}
+.cm .to{font-size:12px;color:var(--mut);margin-left:6px}
+.cm .rb{background:none;border:0;color:var(--mut);font-size:13px;padding:6px 0 0;cursor:pointer;min-height:32px}
+.more{display:block;margin:14px auto 4px}
+.sumc{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;padding:20px 20px 6px}
+.sumc .big{font-size:clamp(30px,9vw,40px);font-weight:300;letter-spacing:-.02em;line-height:1.05;margin:4px 0 4px}
+.sumc .lbl{font-size:13px;font-weight:600;color:var(--acc)}
+.sumc .subt{font-size:13px;color:var(--mut)}
+.care{display:flex;gap:12px;margin:14px 20px 4px;border:1px solid var(--line);border-radius:16px;padding:14px}
+.care .body{flex:1}.care .btn{align-self:flex-start}.care b{font-size:14px;font-weight:600}.care time{font-size:12px;color:var(--mut);margin-left:6px}
+.care .tx{white-space:pre-wrap;font-size:14px;margin-top:2px}
+.cal{padding:8px 14px 0}
+.calh{display:flex;align-items:center;justify-content:space-between;padding:4px 0 6px}
+.calh b{font-size:17px;font-weight:600}
+.wk,.cg{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));text-align:center}
+.wk span{font-size:12px;color:var(--mut);padding:6px 0}
+.cd{aspect-ratio:1;border:0;background:none;display:grid;place-items:center;position:relative;cursor:pointer;padding:0;font-size:15px;color:var(--ink)}
+.cd span{width:min(40px,90%);aspect-ratio:1;border-radius:50%;display:grid;place-items:center;border:1.5px solid transparent}
+.cd.pp span{background:var(--acc);color:#fff}
+.cd.pred span{border:1.5px dashed var(--acc);color:var(--acc)}
+.cd.ov span{border:1.5px dashed var(--mut)}
+.cd.td::after{content:'';position:absolute;bottom:2px;width:5px;height:5px;border-radius:50%;background:var(--ink)}
+.cd.lg::before{content:'';position:absolute;top:5px;right:16%;width:6px;height:6px;border-radius:50%;background:var(--ink);box-shadow:0 0 0 2px var(--bg)}
+.cd.sel span{outline:2px solid var(--ink);outline-offset:2px}
+.legend{display:flex;flex-wrap:wrap;gap:6px 16px;padding:10px 20px 4px;font-size:12px;color:var(--mut)}
+.legend i{display:inline-block;width:12px;height:12px;border-radius:50%;vertical-align:-2px;margin-right:5px}
+.day{padding:18px 20px 24px;border-top:1px solid var(--line);margin-top:10px}
+.day h3{font-size:18px;font-weight:600;margin:0 0 2px}.day .tag{font-size:13px;color:var(--acc);font-weight:500}
+.day h4{font-size:13px;font-weight:600;color:var(--mut);margin:18px 0 8px}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{border:1px solid var(--sf2);background:none;border-radius:999px;padding:6px 14px;font-size:14px;min-height:38px;cursor:pointer}
+.chip.on{background:var(--meb);color:var(--met);border-color:var(--meb)}
+.day textarea{width:100%;border:1px solid var(--sf2);background:transparent;border-radius:12px;padding:10px 14px;font-size:16px;min-height:70px;resize:vertical}
 .steps{list-style:none;margin:0 0 18px;padding:0;display:flex;flex-direction:column;gap:10px;counter-reset:st}
 .steps li{display:flex;gap:14px;align-items:flex-start;border:1px solid var(--line);border-radius:14px;padding:14px;counter-increment:st;font-size:14px;line-height:1.55}
 .steps li::before{content:counter(st);flex:none;width:26px;height:26px;border-radius:50%;background:var(--meb);color:var(--met);display:grid;place-items:center;font-size:13px;font-weight:600}
@@ -139,7 +183,7 @@ textarea:focus,input:focus,select:focus{outline:none;border-color:var(--ink)!imp
 .banner{margin:12px 16px 4px;border:1px solid var(--line);border-radius:14px;padding:14px 16px;display:flex;gap:12px;align-items:center;font-size:14px}
 .banner span{flex:1}
 </style></head><body>
-<div id="app"><div class="loading">角色圈載入中…</div></div>
+<div id="app"><div class="loading">SynDay 載入中…</div></div>
 <div id="toast" role="status"></div>
 <div id="lb" role="dialog" aria-label="照片"><img alt=""></div>
 <script>
@@ -158,7 +202,7 @@ const fmtT=ts=>{const d=new Date(ts),n=new Date();return d.toDateString()===n.to
 const ago=ts=>{const s=(Date.now()-ts)/1000;if(s<60)return'剛剛';if(s<3600)return Math.floor(s/60)+' 分鐘';if(s<86400)return Math.floor(s/3600)+' 小時';return Math.floor(s/86400)+' 天'};
 const COLORS=['#ff4f7b','#6c5ce7','#0e9f9a','#ff8a3d','#3d7bff','#b44fd6','#2f8f4e','#8a6b52'];
 const IMG=/^data:image\/(png|jpeg|webp);base64,[A-Za-z0-9+/=]+$/;
-const P={chat:'<path d="M4 5h16v11H10l-6 4z"/>',feed:'<circle cx="12" cy="12" r="3.6"/><path d="M15.6 12v1.5a2.7 2.7 0 0 0 5.4 0V12a9 9 0 1 0-3.6 7.2"/>',chars:'<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.8-4 3.4-6 6.5-6s5.7 2 6.5 6"/><circle cx="17.2" cy="8.6" r="2.6"/><path d="M16.5 13.6c2.8 0 4.6 1.8 5.2 5.4"/>',me:'<circle cx="12" cy="8" r="4"/><path d="M4 21c1-4.5 4-7 8-7s7 2.5 8 7"/>',back:'<path d="M15 5l-7 7 7 7"/>',send:'<path d="M4 12l16-8-6 16-3-6z"/>',spark:'<path d="M12 3l1.9 6.1L20 11l-6.1 1.9L12 19l-1.9-6.1L4 11l6.1-1.9z"/>',plus:'<path d="M12 5v14M5 12h14"/>',heart:'<path d="M12 20s-7.5-4.6-7.5-10.2A4.2 4.2 0 0 1 12 7.3a4.2 4.2 0 0 1 7.5 2.5C19.5 15.4 12 20 12 20z"/>',cm:'<path d="M20 11.5a8 8 0 0 1-11.8 7L4 20l1.4-4A8 8 0 1 1 20 11.5z"/>',refresh:'<path d="M20 12a8 8 0 1 1-2.4-5.7M20 4v5h-5"/>',group:'<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.8-4 3.4-6 6.5-6s5.7 2 6.5 6M18 8v6M15 11h6"/>',img:'<rect x="3" y="4" width="18" height="16" rx="3"/><circle cx="9" cy="10" r="2"/><path d="M21 16l-5-5-9 9"/>'};
+const P={chat:'<path d="M4 5h16v11H10l-6 4z"/>',feed:'<circle cx="12" cy="12" r="3.6"/><path d="M15.6 12v1.5a2.7 2.7 0 0 0 5.4 0V12a9 9 0 1 0-3.6 7.2"/>',chars:'<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.8-4 3.4-6 6.5-6s5.7 2 6.5 6"/><circle cx="17.2" cy="8.6" r="2.6"/><path d="M16.5 13.6c2.8 0 4.6 1.8 5.2 5.4"/>',me:'<circle cx="12" cy="8" r="4"/><path d="M4 21c1-4.5 4-7 8-7s7 2.5 8 7"/>',back:'<path d="M15 5l-7 7 7 7"/>',send:'<path d="M4 12l16-8-6 16-3-6z"/>',spark:'<path d="M12 3l1.9 6.1L20 11l-6.1 1.9L12 19l-1.9-6.1L4 11l6.1-1.9z"/>',plus:'<path d="M12 5v14M5 12h14"/>',heart:'<path d="M12 20s-7.5-4.6-7.5-10.2A4.2 4.2 0 0 1 12 7.3a4.2 4.2 0 0 1 7.5 2.5C19.5 15.4 12 20 12 20z"/>',cm:'<path d="M20 11.5a8 8 0 0 1-11.8 7L4 20l1.4-4A8 8 0 1 1 20 11.5z"/>',refresh:'<path d="M20 12a8 8 0 1 1-2.4-5.7M20 4v5h-5"/>',group:'<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.8-4 3.4-6 6.5-6s5.7 2 6.5 6M18 8v6M15 11h6"/>',cal:'<rect x="3.5" y="5" width="17" height="15.5" rx="3"/><path d="M3.5 10h17M8 3v4M16 3v4"/>',gear:'<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/>',fwd:'<path d="M9 5l7 7-7 7"/>',img:'<rect x="3" y="4" width="18" height="16" rx="3"/><circle cx="9" cy="10" r="2"/><path d="M21 16l-5-5-9 9"/>'};
 const ic=(n,cls='')=>`<svg class="${cls}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${P[n]}</svg>`;
 
 const S={profile:{me:'',period:null},chars:{},convs:{},posts:{}};
@@ -181,13 +225,14 @@ let idb=null,saveT=null;
 function idbOpen(){return new Promise((res,rej)=>{const r=indexedDB.open('jiaoseq',1);r.onupgradeneeded=()=>r.result.createObjectStore('kv');r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)})}
 function idbGet(k){return new Promise((res,rej)=>{const q=idb.transaction('kv').objectStore('kv').get(k);q.onsuccess=()=>res(q.result);q.onerror=()=>rej(q.error)})}
 function idbPut(k,v){return new Promise((res,rej)=>{const tx=idb.transaction('kv','readwrite');tx.objectStore('kv').put(v,k);tx.oncomplete=()=>res();tx.onerror=()=>rej(tx.error)})}
-function save(){clearTimeout(saveT);saveT=setTimeout(flush,300)}
+function save(){clearTimeout(saveT);saveT=setTimeout(flush,120)}
 async function flush(){clearTimeout(saveT);saveT=null;const data=JSON.stringify(S);
   try{if(idb)await idbPut('state',data);else localStorage.setItem('jiaoseq-v1',data)}catch(e){toast('存檔失敗：手機空間可能不夠了，先到「我」匯出備份')}}
 window.addEventListener('pagehide',()=>{if(saveT)flush()});
 async function initStore(){
-  try{idb=await idbOpen();const d=await idbGet('state');if(d)Object.assign(S,JSON.parse(d))}
+  try{idb=await idbOpen();const d=await idbGet('state');if(d)Object.assign(S,JSON.parse(d));else{const j=localStorage.getItem('jiaoseq-v1');if(j)Object.assign(S,JSON.parse(j))}}
   catch(e){idb=null;try{const j=JSON.parse(localStorage.getItem('jiaoseq-v1')||'null');if(j)Object.assign(S,j)}catch(e2){}}
+  try{const lc=S.profile.period&&S.profile.period.lastCare;if(lc&&!S.profile.careLog){addCare(dOf(lc.ts),lc);save()}}catch(e){}
   try{navigator.storage&&navigator.storage.persist&&navigator.storage.persist()}catch(e){}
   render();
   setTimeout(proCheck,1500);setInterval(proCheck,4*60e3);
@@ -198,6 +243,7 @@ async function initStore(){
 const meName=()=>(S.profile.me||'').trim()||'你';
 const chName=id=>id==='me'?meName():(S.chars[id]?.name||'某人');
 function av(id,cls=''){
+  if(id==='me'&&S.profile.img&&IMG.test(S.profile.img))return`<div class="av ${cls}" style="background-image:url('${S.profile.img}')" role="img" aria-label="${esc(meName())}"></div>`;
   if(id==='me')return`<div class="av me ${cls}">${esc(meName().slice(0,1))}</div>`;
   const c=S.chars[id]||{name:'?',color:'#999'};
   if(c.img&&IMG.test(c.img))return`<div class="av ${cls}" style="background-image:url('${c.img}')" role="img" aria-label="${esc(c.name)}"></div>`;
@@ -205,7 +251,7 @@ function av(id,cls=''){
 }
 function toast(t){const el=$('#toast');el.textContent=t;el.classList.add('on');clearTimeout(toast.t);toast.t=setTimeout(()=>el.classList.remove('on'),3200)}
 function ensureDM(cid){const id='dm_'+cid;if(!S.convs[id]){S.convs[id]={type:'dm',members:[cid],msgs:[],ts:Date.now()};save('convs',id)}return id}
-function push(cv,f,t){const c=S.convs[cv];c.msgs.push({f,t,ts:Date.now()});if(c.msgs.length>300)c.msgs=c.msgs.slice(-300);c.ts=Date.now();
+function push(cv,f,t,img){const c=S.convs[cv];c.msgs.push(img?{f,t:t||'',img,ts:Date.now()}:{f,t,ts:Date.now()});{const withImg=c.msgs.filter(m=>m.img);if(withImg.length>24)withImg.slice(0,withImg.length-24).forEach(m=>{m.img='';m.gone=1})}if(c.msgs.length>300)c.msgs=c.msgs.slice(-300);c.ts=Date.now();
   if(f!=='me'&&!(V.sub?.k==='conv'&&V.sub.id===cv&&document.visibilityState==='visible'))c.unread=(c.unread||0)+1}
 const anyUnread=()=>Object.values(S.convs).some(c=>c.unread>0&&c.members.some(m=>S.chars[m]));
 const convTitle=c=>c.type==='dm'?chName(c.members[0]):(c.title||c.members.map(chName).join('、'));
@@ -223,16 +269,40 @@ function per(){
   return{kind,day:d+1,to,last,next:ds(next),cyc,len,avg,hist:h,d};
 }
 function perText(st){const n=meName();return{in:`${n}現在是生理期第 ${st.day} 天`,soon:`${n}的生理期預計 ${st.to} 天後會來`,due:`${n}的生理期預計今天會來`,late:`${n}的生理期比預期晚了 ${-st.to} 天`,normal:''}[st.kind]}
+const FLOW=[['light','少'],['mid','中'],['heavy','多']],SYM=['經痛','腰痠','頭痛','脹氣','胸部脹痛','長痘痘','疲倦','失眠','想吃甜食','食慾變好'],MOOD=['開心','平靜','普通','低落','煩躁','焦慮','想哭'];
+function careLog(){return S.profile.careLog||(S.profile.careLog={})}
+function addCare(d,rec){const cl=careLog();(cl[d]||(cl[d]=[])).push(rec);if(cl[d].length>10)cl[d]=cl[d].slice(-10);const ks=Object.keys(cl).sort();for(const k of ks.slice(0,Math.max(0,ks.length-200)))delete cl[k]}
+const dOf=ts=>{const x=new Date(ts);return x.getFullYear()+'-'+pad(x.getMonth()+1)+'-'+pad(x.getDate())};
+function tidy(d){const l=dlog()[d];if(l&&!hasLog(l))delete dlog()[d]}
+const dlog=()=>S.profile.daylog||(S.profile.daylog={});
+const hasLog=l=>!!(l&&((l.flow)||(l.sym&&l.sym.length)||l.mood||l.note));
+function logText(d){const l=dlog()[d];if(!hasLog(l))return'';const a=[];if(l.flow)a.push('經血量'+{light:'少',mid:'中',heavy:'多'}[l.flow]);if(l.sym&&l.sym.length)a.push('身體：'+l.sym.join('、'));if(l.mood)a.push('心情：'+l.mood);if(l.note)a.push('她寫的備註：'+l.note.slice(0,200));return a.join('；')}
+function cycleMap(){
+  const m={},p=S.profile.period;if(!p||!p.hist)return m;const st=per(),len=st?st.len:(+p.len||5);
+  for(const h of p.hist)for(let i=0;i<len;i++)m[ds(dn(h)+i)]='pp';
+  for(const[d,v]of Object.entries(dlog()))if(v&&v.flow)m[d]='pp';
+  if(st){const base=st.kind==='late'?dn(today()):dn(st.next);
+    for(let k=0;k<4;k++){const s0=base+k*st.cyc;for(let i=0;i<st.len;i++){const d=ds(s0+i);if(!m[d])m[d]='pred'}
+      const ov=ds(s0-14);if(!m[ov]&&s0-14>dn(st.last)+st.len)m[ov]='ov'}}
+  return m;
+}
 function careDue(){const p=S.profile.period,st=per();return!!(p&&p.by&&S.chars[p.by]&&st&&st.kind!=='normal'&&p.lastRemind!==today())}
 
 /* ---------- AI ---------- */
 const RULE='使用繁體中文（除非角色設定要求其他語言）。說話完全符合角色的個性、口吻和與對方的關係，像真人用手機打字：口語、自然、有溫度，不要寫成小說旁白，不要提到自己是 AI。';
-const PMAX=20000,RMAX=30000;
+const PMAX=20000,RMAX=30000,MMAX=6000;
 function persona(c,full){
   const ps=(c.persona||'（沒有詳細設定，請自然發揮）').slice(0,full?PMAX:4000);
+  const mm=(c.mem||'').trim(),mem=full?mm.slice(0,MMAX):mm.slice(-2500);
   const ref=(c.ref||'').trim(),tail=ref.slice(-(full?8000:1200));
-  return`【${c.name}】\n${ps}${tail?`\n\n〔${c.name}過去說話的紀錄，請學習他的語氣、用詞、標點和說話習慣，但不要照抄內容〕\n${tail}`:''}`;
+  return`【${c.name}】\n${ps}${full?relAll(c):''}${mem?`\n\n〔${c.name}必須記得的事：這些都是真的發生過、對他很重要的事，包括他和${meName()}的關係與回憶。對話時要記得，在自然的時候提起或運用，絕對不能和這些矛盾〕\n${mem}`:''}${tail?`\n\n〔${c.name}過去說話的紀錄，請學習他的語氣、用詞、標點和說話習慣，但不要照抄內容〕\n${tail}`:''}`;
 }
+function relBlock(ids){
+  const out=[];for(const a of ids){const c=S.chars[a];if(!c||!c.rel)continue;for(const b of ids){if(a===b||!S.chars[b])continue;const t=(c.rel[b]||'').trim();if(t)out.push(`・${c.name} 怎麼看 ${S.chars[b].name}：${t.slice(0,600)}`)}}
+  return out.length?`\n\n〔角色之間的關係（非常重要，互動一定要照這個來）〕\n${out.join('\n')}`:'';
+}
+function relAll(c){const out=[];for(const[b,t]of Object.entries(c.rel||{})){if(S.chars[b]&&(t||'').trim())out.push(`・${S.chars[b].name}：${t.trim().slice(0,600)}`)}return out.length?`\n\n〔${c.name}和其他角色的關係〕\n${out.join('\n')}`:''}
+const MULTI=()=>{const me=meName();return`在寫之前，先在心裡根據每個角色的人設，推斷他和「${me}」是什麼關係、角色彼此之間又是什麼關係（不用寫出來）。如果有兩個以上的角色都是「${me}」的男朋友、老公、戀人、曖昧對象或喜歡她，他們彼此就是情敵：會吃醋、較勁、宣示主權、搶著回她、互相酸對方、看對方不順眼——但不要真的惡毒、人身攻擊或傷害「${me}」。如果人設或下面的關係說明寫了別的關係（例如兄弟、朋友、同事），就照那個來。角色之間的互動要真實：每個角色只照自己的個性和立場說話，不要為了和氣而互相附和、互相稱讚或打圓場；就算關係好，也不要每個人都同意彼此。每個角色的語氣、用詞和說話長短要明顯不同，讓人一看就知道是誰。`};
 function decodeText(buf){
   const u=new TextDecoder('utf-8').decode(buf);const bad=u.split(String.fromCharCode(0xFFFD)).length-1;
   if(bad>5){try{return new TextDecoder('big5').decode(buf)}catch(e){}}
@@ -247,7 +317,7 @@ async function readFile(f){
   return decodeText(await f.arrayBuffer()).trim();
 }
 const cnt=(v,m)=>`${(v||'').length.toLocaleString()} / ${m.toLocaleString()} 字`;
-function hist(cv,n=24){return cv.msgs.slice(-n).map(m=>`${chName(m.f)}：${m.t}`).join('\n')||'（還沒有對話）'}
+function hist(cv,n=24){return cv.msgs.slice(-n).map(m=>`${chName(m.f)}：${m.t||''}${m.img||m.gone?'（傳了一張照片）':''}`).join('\n')||'（還沒有對話）'}
 async function loadModels(key){
   const r=await fetch(GAPI+'models?pageSize=200',{headers:{'x-goog-api-key':key}});
   if(!r.ok)throw r.status;const j=await r.json();
@@ -280,21 +350,27 @@ function lines(t,names){
     if(m){const who=names.find(n=>n===m[1].trim());if(who)return{who,t:m[2].trim()}}
     return{who:null,t:s}});
 }
+function pendImgs(c){const out=[];for(let i=c.msgs.length-1;i>=0;i--){const m=c.msgs[i];if(m.f!=='me')break;if(m.img&&IMG.test(m.img))out.unshift(m.img)}return out.slice(-3)}
+const imgNote=n=>n?`\n（${meName()}剛剛傳了 ${n} 張照片給你們，你看得到照片，請針對照片的內容自然地反應）`:'';
 async function replyDM(cv,mode){
-  const care=mode===true||mode==='care',pro=mode==='pro';
+  const care=mode===true||mode==='care',pro=mode==='pro',logm=mode==='log';
   const c=S.convs[cv],cid=c.members[0],ch=S.chars[cid];if(!ch||busy[cv])return;
   busy[cv]=[cid];render();
-  const st=per(),pt=st?perText(st):'';
+  const st=per(),lt=logText(today()),pt=(st?perText(st):'')+(lt?`。${meName()}今天記錄的身體與心情：${lt}`:'');
   const nw=new Date(),last=c.msgs[c.msgs.length-1];
   const clock=`現在是星期${WD[nw.getDay()]} ${pad(nw.getHours())}:${pad(nw.getMinutes())}（${meName()}那邊的時間）。`;
-  const ctx=care?`今天你想主動傳訊息關心對方，因為：${pt}。用你自己的方式自然地關心（不要說是誰提醒你的，也不要說教）。`
+  const ctx=logm?`${clock}${meName()}剛剛跟你說了她今天的狀況：${lt||'（沒有特別寫）'}。${st&&perText(st)?`（另外：${perText(st)}）`:''}請用你自己的方式回應她、關心她，可以陪她、逗她或給一點貼心的小建議，但不要說教，也不要講得像醫生。`
+    :care?`今天你想主動傳訊息關心對方，因為：${pt}。用你自己的方式自然地關心（不要說是誰提醒你的，也不要說教）。`
     :pro?`${clock}${last?`距離上一則訊息已經過了 ${ago(last.ts)}。`:'你們還沒有聊過天。'}你想主動傳訊息給${meName()}：可以分享你正在做的事、突然想到對方、問候、碎碎念、或接續之前的話題，要符合角色個性和現在的時間。不要每次都問「在幹嘛」。${pt?`（背景資訊，自然時才提：${pt}）`:''}`
     :`${clock}${pt?`（背景資訊，只有在自然的時候才提起，不要每次都提：${pt}）`:''}`;
-  const prompt=`你正在扮演一個角色，在類似 LINE 的聊天軟體裡和「${meName()}」私訊聊天。\n\n${persona(ch,true)}\n\n${ctx}\n\n最近的對話：\n${hist(c)}\n\n現在換「${ch.name}」傳訊息。可以分成 1 到 3 則，每則一行，就像連續傳了幾則訊息。只輸出訊息本身，不要加名字、引號或說明。${RULE}`;
+  const pim=(pro||care||logm)?[]:pendImgs(c);
+  const prompt=`你正在扮演一個角色，在類似 LINE 的聊天軟體裡和「${meName()}」私訊聊天。\n\n${persona(ch,true)}\n\n${ctx}\n\n最近的對話：\n${hist(c)}${imgNote(pim.length)}\n\n現在換「${ch.name}」傳訊息。可以分成 1 到 3 則，每則一行，就像連續傳了幾則訊息。只輸出訊息本身，不要加名字、引號或說明。${RULE}`;
   if(pro){ch.lastPro=Date.now();save('chars',cid)}
-  try{const t=await ask(prompt,null,pro);const ls=lines(t,[ch.name]).slice(0,4);
+  try{const t=await ask(prompt,pim,pro);const ls=lines(t,[ch.name]).slice(0,4);
     for(const l of ls){await sleep(Math.min(1400,350+l.t.length*25));push(cv,cid,l.t);render()}
-    if(care){S.profile.period.lastRemind=today();save('profile','p')}
+    if(care){S.profile.period.lastRemind=today()}
+    if((care||logm)&&ls.length&&S.profile.period){const rec={by:cid,t:ls.map(l=>l.t).join('\n'),ts:Date.now(),kind:logm?'log':'care'};S.profile.period.lastCare=rec;addCare(today(),rec)}
+    if(care||logm)save('profile','p');
     save('convs',cv)}catch(e){}
   delete busy[cv];render();
 }
@@ -309,9 +385,9 @@ async function proCheck(){
 async function replyGroup(cv){
   const c=S.convs[cv],mem=c.members.filter(id=>S.chars[id]);if(!mem.length||busy[cv])return;
   busy[cv]=mem;render();
-  const names=mem.map(chName);
-  const prompt=`你要同時扮演群組聊天室「${convTitle(c)}」裡的幾個角色，和「${meName()}」一起在類似 LINE 的群組裡聊天。\n\n${mem.map(id=>persona(S.chars[id])).join('\n\n')}\n\n最近的對話：\n${hist(c,30)}\n\n接下來讓最自然會開口的角色回應，共 1 到 4 則訊息，可以是不同角色，角色之間也可以互相接話、吐槽。每則一行，格式「角色名：內容」。角色名只能是：${names.join('、')}。${RULE}`;
-  try{const t=await ask(prompt);const ls=lines(t,names).filter(l=>l.who).slice(0,5);
+  const names=mem.map(chName),pim=pendImgs(c);
+  const prompt=`你要同時扮演群組聊天室「${convTitle(c)}」裡的幾個角色，和「${meName()}」一起在類似 LINE 的群組裡聊天。\n\n${mem.map(id=>persona(S.chars[id])).join('\n\n')}${relBlock(mem)}\n\n最近的對話：\n${hist(c,30)}${imgNote(pim.length)}\n\n接下來讓最自然會開口的角色回應，共 1 到 4 則訊息，可以是不同角色，角色之間也可以互相接話、吐槽、爭執。${MULTI()}\n每則一行，格式「角色名：內容」。角色名只能是：${names.join('、')}。${RULE}`;
+  try{const t=await ask(prompt,pim);const ls=lines(t,names).filter(l=>l.who).slice(0,5);
     for(const l of ls){busy[cv]=[mem[names.indexOf(l.who)]];render();await sleep(Math.min(1500,450+l.t.length*25));push(cv,mem[names.indexOf(l.who)],l.t);render()}
     save('convs',cv)}catch(e){}
   delete busy[cv];render();
@@ -323,22 +399,32 @@ async function genPost(){
   const mine=Object.values(S.posts).filter(p=>p.a===cid).sort((a,b)=>b.ts-a.ts).slice(0,4).map(p=>'- '+p.t.slice(0,80)).join('\n')||'（還沒發過）';
   const dm=S.convs['dm_'+cid];
   const prompt=`你正在扮演一個角色，要在類似 Threads 的社群平台發一則新貼文。\n\n${persona(ch,true)}\n\n${ch.name}最近發過的貼文：\n${mine}\n\n最近和${meName()}的私訊（可以拿來當靈感、偷偷呼應，但不要直接公開私密內容）：\n${dm?hist(dm,10):'（無）'}\n\n寫一則新貼文：日常、心情、碎念、想法、小抱怨或分享都可以，30 到 120 字，跟之前的不要重複。只輸出貼文內容。${RULE}`;
-  try{const t=(await ask(prompt)).trim().replace(/^["「]|["」]$/g,'');if(t){const id=nid();S.posts[id]={a:cid,t,ts:Date.now(),liked:false,lk:[],cm:[]};save('posts',id);prunePosts()}}catch(e){}
+  try{const t=(await ask(prompt)).trim().replace(/^["「]|["」]$/g,'');if(t){const id=nid();S.posts[id]={a:cid,t,ts:Date.now(),liked:false,lk:[],cm:[]};save('posts',id);prunePosts();delete busy.feed;render();await sleep(1200);genComments(id,'banter');return}}catch(e){}
   delete busy.feed;render();
 }
-async function genComments(pid){
+async function genComments(pid,mode){
   const p=S.posts[pid];if(!p||busy[pid])return;
   let cast=Object.keys(S.chars);if(!cast.length)return;
-  cast=cast.sort(()=>Math.random()-.5).slice(0,5);if(p.a!=='me'&&S.chars[p.a]&&!cast.includes(p.a))cast[0]=p.a;
+  cast=cast.sort(()=>Math.random()-.5).slice(0,6);if(p.a!=='me'&&S.chars[p.a]&&!cast.includes(p.a))cast[0]=p.a;
+  if(mode==='banter'&&cast.filter(x=>x!==p.a).length<1)return;
   busy[pid]=true;render();
-  const names=cast.map(chName);
-  const thread=p.cm.slice(-20).map(c=>`${chName(c.f)}：${c.t}`).join('\n')||'（還沒有留言）';
-  const task=p.a==='me'?'讓 1 到 2 個最可能會留言的角色在底下回應。':`「${chName(p.a)}」要回覆最新的留言；如果自然，也可以有另一位角色插話（最多共 2 則）。`;
+  const names=cast.map(chName),me=meName();
+  const thread=p.cm.slice(-24).map(c=>`${chName(c.f)}${c.to?`→${chName(c.to)}`:''}：${c.t}`).join('\n')||'（還沒有留言）';
+  const lastC=p.cm[p.cm.length-1];
+  let task;
+  if(mode==='banter')task=`其他角色滑到了這則貼文。讓 1 到 3 個角色留言，作者「${chName(p.a)}」也可以回覆他們，角色之間可以互相接話、吐槽或聊起來。共 2 到 5 則，不用每個角色都出現。`;
+  else if(lastC&&lastC.f==='me')task=`「${me}」剛剛留言${lastC.to?`回覆了「${chName(lastC.to)}」`:''}。${lastC.to&&lastC.to!=='me'?`「${chName(lastC.to)}」一定要回她`:p.a!=='me'?`作者「${chName(p.a)}」要回她`:'最相關的角色要回她'}；其他角色如果自然也可以加入，或互相接話。共 2 到 4 則。`;
+  else if(p.a==='me')task=`這是「${me}」發的貼文。讓 2 到 4 個最可能會留言的角色回應，角色之間也可以互相回覆、吐槽或接話，形成一小段熱鬧的留言串。共 2 到 5 則。`;
+  else task=`讓角色們繼續聊這則貼文，可以回覆之前的留言，也可以互相接話。共 2 到 4 則。`;
   const imgs=(p.imgs||[]).filter(u=>IMG.test(u));
-  const photo=imgs.length?`\n（這則貼文附了 ${imgs.length} 張照片${imgs.length?'，如果你看得到照片，請針對照片的內容自然地反應':''}）`:'';
-  const prompt=`你要扮演社群平台（類似 Threads）上的角色，在一則貼文底下留言。\n\n${cast.map(id=>persona(S.chars[id])).join('\n\n')}\n\n貼文（${chName(p.a)} 發的）：\n${p.t||'（沒有文字）'}${photo}\n\n目前的留言串：\n${thread}\n\n${task}留言要短，像真的在留言。每則一行，格式「角色名：內容」。角色名只能是：${names.join('、')}。${RULE}`;
-  try{const t=await ask(prompt,imgs);const ls=lines(t,names).filter(l=>l.who).slice(0,3);
-    for(const l of ls){await sleep(700);const f=cast[names.indexOf(l.who)];p.cm.push({f,t:l.t,ts:Date.now()});if(p.cm.length>80)p.cm=p.cm.slice(-80);if(p.a==='me'&&!p.lk.includes(f))p.lk.push(f);render()}
+  const photo=imgs.length?`\n（這則貼文附了 ${imgs.length} 張照片，請針對照片的內容自然地反應）`:'';
+  const prompt=`你要同時扮演社群平台（類似 Threads）上的幾個角色，在一則貼文底下留言。\n\n${cast.map(id=>persona(S.chars[id])).join('\n\n')}${relBlock(cast)}\n\n貼文（${chName(p.a)} 發的）：\n${p.t||'（沒有文字）'}${photo}\n\n目前的留言串（「A→B」代表 A 回覆 B）：\n${thread}\n\n${task}\n留言要短，像真的在社群留言。${MULTI()}\n每則一行，格式「角色名：內容」；如果是在回覆某人，用「角色名→被回覆的人：內容」。留言的角色只能是：${names.join('、')}。被回覆的人可以是這些角色或「${me}」。${RULE}`;
+  try{const t=await ask(prompt,imgs);
+    const out=[];for(const raw of t.split('\n')){const s1=raw.trim().replace(/^[-*・\s]+/,'');if(!s1)continue;
+      const m=s1.match(/^(.{1,20}?)\s*(?:→|->|>|＞)\s*(.{1,20}?)\s*[:：]\s*(.+)$/)||s1.match(/^(.{1,20}?)()\s*[:：]\s*(.+)$/);if(!m)continue;
+      const wi=names.indexOf(m[1].trim());if(wi<0)continue;const tn=(m[2]||'').trim();
+      const to=tn===me?'me':(names.indexOf(tn)>=0?cast[names.indexOf(tn)]:'');out.push({f:cast[wi],t:m[3].trim().replace(/^["「]|["」]$/g,''),to})}
+    for(const l of out.slice(0,6)){await sleep(650);p.cm.push({f:l.f,t:l.t,ts:Date.now(),...(l.to&&l.to!==l.f?{to:l.to}:{})});if(p.cm.length>100)p.cm=p.cm.slice(-100);if(l.f!==p.a&&!p.lk.includes(l.f))p.lk.push(l.f);render()}
     save('posts',pid)}catch(e){}
   delete busy[pid];render();
 }
@@ -351,14 +437,14 @@ const subHead=(title,extra='')=>`<header class="sub"><button class="icon" data-a
 
 function vChats(){
   const hasC=Object.keys(S.chars).length;
-  let h=head('聊天',hasC?`<button class="icon" data-act="newGroup" aria-label="建立群組">${ic('group')}</button>`:'');
+  let h=head('SynDay<small>共時</small>',hasC?`<button class="icon" data-act="newGroup" aria-label="建立群組">${ic('group')}</button>`:'');
   if(!hasC)return h+empty('還沒有角色','先建立一個角色，他就會出現在你的聊天列表，也會開始在動態發文。','<button class="btn" data-act="newChar">建立第一個角色</button>');
   const care=careDue()?'dm_'+S.profile.period.by:null;
   if(!AI.key)h+=`<div class="banner"><span>角色還不能說話：先貼上免費的 Gemini 金鑰。</span><button class="btn sm" data-act="tab" data-id="me">去設定</button></div>`;
   const list=Object.entries(S.convs).filter(([,c])=>c.members.some(m=>S.chars[m])).sort((a,b)=>(b[0]===care)-(a[0]===care)||b[1].ts-a[1].ts);
   return h+list.map(([id,c])=>{const last=c.msgs[c.msgs.length-1];
     const pic=c.type==='dm'?av(c.members[0]):`<div class="stackav">${av(c.members[0])}${av(c.members[1]||c.members[0])}</div>`;
-    const prev=busy[id]?'正在輸入…':id===care?'有一則新訊息':last?(c.type==='group'&&last.f!=='me'?chName(last.f)+'：':'')+last.t:'開始聊天吧';
+    const prev=busy[id]?'正在輸入…':id===care?'有一則新訊息':last?(c.type==='group'&&last.f!=='me'?chName(last.f)+'：':'')+(last.t||((last.img||last.gone)?'[照片]':'')):'開始聊天吧';
     const un=(c.unread||0)+(id===care?1:0);return`<button class="row ${un?'unread':''}" data-act="openConv" data-id="${id}">${pic}<span class="t"><b>${esc(convTitle(c))}${c.type==='group'?` <small style="color:var(--mut);font-weight:400">(${c.members.length+1})</small>`:''}</b><span class="p">${esc(prev)}</span></span><span class="r">${last?`<time>${fmtT(last.ts)}</time>`:''}${(c.unread||0)+(id===care?1:0)?`<span class="pill">${(c.unread||0)+(id===care?1:0)}</span>`:''}</span></button>`}).join('');
 }
 function vConv(id){
@@ -369,11 +455,13 @@ function vConv(id){
   c.msgs.forEach((m,i)=>{const day=new Date(m.ts).toDateString();if(day!==prevDay){out+=`<div class="daysep">${new Date(m.ts).getMonth()+1}月${new Date(m.ts).getDate()}日</div>`;prevDay=day;prevF=null}
     const me=m.f==='me',cont=prevF===m.f;prevF=m.f;
     const meta=`<div class="meta">${me&&i===lastMe&&replied?'已讀<br>':''}${fmtT(m.ts)}</div>`;
-    out+=`<div class="m ${me?'me':''} ${cont?'cont':''}">${me?'':av(m.f,'s')}<div class="col">${me?'':`<div class="who">${esc(chName(m.f))}</div>`}<div class="bb">${esc(m.t)}</div></div>${meta}</div>`});
+    out+=`<div class="m ${me?'me':''} ${cont?'cont':''}">${me?'':av(m.f,'s')}<div class="col">${me?'':`<div class="who">${esc(chName(m.f))}</div>`}${m.img&&IMG.test(m.img)?`<img class="mimg" src="${m.img}" alt="照片" data-act="zoom" loading="lazy">`:m.gone?'<div class="gone">照片已過期</div>':''}${m.t?`<div class="bb ${V.pick&&V.pick.cv===id&&V.pick.i===i?'on':''}" data-act="pickMsg" data-id="${i}">${esc(m.t)}</div>`:''}</div>${meta}</div>`});
   if(busy[id])out+=`<div class="m typing">${av(busy[id][0],'s')}<div class="col"><div class="bb"><i></i><i></i><i></i></div></div></div>`;
   if(!c.msgs.length&&!busy[id])out+=`<div class="daysep">傳第一則訊息，或按 ✦ 讓對方先開口</div>`;
   const k='in-'+id;
-  return h+`<div class="chat">${out}</div><div class="inbar"><button class="icon" data-act="nudge" aria-label="讓角色說話" title="讓角色說話" ${busy[id]?'disabled':''}>${ic('spark')}</button><textarea id="${k}" rows="1" placeholder="輸入訊息" aria-label="輸入訊息">${esc(drafts[k]||'')}</textarea><button class="icon pri" data-act="send" aria-label="傳送">${ic('send')}</button></div>`;
+  if(V.pick&&V.pick.cv===id&&c.msgs[V.pick.i]){const pm=c.msgs[V.pick.i],who=pm.f==='me'?c.members:[pm.f];out+=`<div style="height:150px"></div>`;
+    h+=`<div class="pick"><p class="q">「${esc(pm.t)}」</p><div class="btns">${who.filter(x=>S.chars[x]).map(x=>`<button class="btn sm" data-act="remember" data-id="${x}">讓${esc(chName(x))}記住</button>`).join('')}<button class="btn sm ghost" data-act="pickNo">取消</button></div></div>`}
+  return h+`<div class="chat">${out}</div><div class="inbar"><button class="icon" data-act="nudge" aria-label="讓角色說話" title="讓角色說話" ${busy[id]?'disabled':''}>${ic('spark')}</button><label class="icon" aria-label="傳照片" title="傳照片" style="cursor:pointer">${ic('img')}<input type="file" id="chat-file" accept="image/*" multiple hidden></label><textarea id="${k}" rows="1" placeholder="輸入訊息" aria-label="輸入訊息">${esc(drafts[k]||'')}</textarea><button class="icon pri" data-act="send" aria-label="傳送">${ic('send')}</button></div>`;
 }
 function vGroup(){
   const ids=Object.keys(S.chars);
@@ -381,7 +469,7 @@ function vGroup(){
 }
 function postHTML(id,p,detail){
   const n=(p.lk?.length||0)+(p.liked?1:0);
-  return`<article class="post" ${detail?'':`data-act="openPost" data-id="${id}"`}><div class="lft">${av(p.a)}${!detail&&p.cm.length?'<div class="ln"></div>':''}</div><div class="body"><div class="h"><b>${esc(chName(p.a))}</b><time>${ago(p.ts)}</time></div>${p.t?`<div class="tx">${esc(p.t)}</div>`:''}${(()=>{const im=(p.imgs||[]).filter(u=>IMG.test(u));return im.length?`<div class="pimgs n${Math.min(im.length,2)}">${im.map(u=>`<img src="${u}" alt="貼文照片" data-act="zoom" loading="lazy">`).join('')}</div>`:''})()}<div class="acts"><button data-act="like" data-id="${id}" class="${p.liked?'liked':''}" aria-label="喜歡">${ic('heart')}${n||''}</button><button data-act="openPost" data-id="${id}" aria-label="留言">${ic('cm')}${p.cm.length||''}</button></div></div></article>`;
+  return`<article class="post" ${detail?'':`data-act="openPost" data-id="${id}"`}><div class="lft">${av(p.a)}${!detail&&p.cm.length?'<div class="ln"></div>':''}</div><div class="body"><div class="h"><b>${esc(chName(p.a))}</b><time>${ago(p.ts)}</time></div>${p.t?`<div class="tx">${esc(p.t)}</div>`:''}${(()=>{const im=(p.imgs||[]).filter(u=>IMG.test(u));return im.length?`<div class="pimgs n${Math.min(im.length,2)}">${im.map(u=>`<img src="${u}" alt="貼文照片" data-act="zoom" loading="lazy">`).join('')}</div>`:''})()}<div class="acts"><button data-act="like" data-id="${id}" class="${p.liked?'liked':''}" aria-label="喜歡">${ic('heart')}${n||''}</button><button data-act="openPost" data-id="${id}" aria-label="留言">${ic('cm')}${p.cm.length||''}</button></div>${!detail&&p.cm.length?(()=>{const u=[...new Set(p.cm.map(c=>c.f))];return`<div class="rep"><span class="avs">${u.slice(0,3).map(f=>av(f,'xs')).join('')}</span><span>${u.length>1?`${esc(chName(u[0]))}、${esc(chName(u[1]))}${u.length>2?` 等 ${u.length} 人`:''}`:esc(chName(u[0]))} · ${p.cm.length} 則回覆</span></div>`})():''}</div></article>`;
 }
 function vFeed(){
   const hasC=Object.keys(S.chars).length;
@@ -396,10 +484,11 @@ function vFeed(){
 function vPost(id){
   const p=S.posts[id];if(!p)return vFeed();
   let h=subHead('串文')+postHTML(id,p,true);
-  h+=p.cm.map(c=>`<div class="cm">${av(c.f,'s')}<div><b>${esc(chName(c.f))}</b><time>${ago(c.ts)}</time><div class="tx">${esc(c.t)}</div></div></div>`).join('');
+  h+=p.cm.map(c=>`<div class="cm">${av(c.f,'s')}<div style="flex:1"><b>${esc(chName(c.f))}</b>${c.to?`<span class="to">回覆 ${esc(chName(c.to))}</span>`:''}<time>${ago(c.ts)}</time><div class="tx">${esc(c.t)}</div>${c.f!=='me'?`<button class="rb" data-act="replyTo" data-id="${id}|${c.f}">回覆</button>`:''}</div></div>`).join('');
   if(busy[id])h+=`<div class="wait">有人正在回覆…</div>`;
+  else if(p.cm.length&&Object.keys(S.chars).length>1)h+=`<button class="btn ghost sm more" data-act="moreCm" data-id="${id}">讓大家再多聊幾句</button>`;
   const k='in-cm-'+id;
-  return h+`<div class="inbar"><textarea id="${k}" rows="1" placeholder="回覆 ${esc(chName(p.a))}…" aria-label="留言">${esc(drafts[k]||'')}</textarea><button class="icon pri" data-act="comment" aria-label="送出留言">${ic('send')}</button></div>`;
+  return h+`<div class="inbar"><textarea id="${k}" rows="1" placeholder="${(V.replyTo&&V.replyTo[id])?`回覆 ${esc(chName(V.replyTo[id]))}…`:p.a==='me'?'留言…':`回覆 ${esc(chName(p.a))}…`}" aria-label="留言">${esc(drafts[k]||'')}</textarea><button class="icon pri" data-act="comment" aria-label="送出留言">${ic('send')}</button></div>`;
 }
 function vChars(){
   const ids=Object.keys(S.chars).sort((a,b)=>(S.chars[a].created||0)-(S.chars[b].created||0));
@@ -409,13 +498,16 @@ const TPL='例如：\n身份：28 歲的調香師，住在台北\n個性：外�
 function vCharEdit(id){
   const c=id==='new'?{name:'',persona:'',color:COLORS[Object.keys(S.chars).length%COLORS.length]}:S.chars[id];if(!c)return vChars();
   if(formColor===null)formColor=c.color;if(formImg===undefined)formImg=c.img||'';
-  const nm=drafts['c-name']??c.name,ps=drafts['c-persona']??c.persona,rf=drafts['c-ref']??(c.ref||'');
+  const nm=drafts['c-name']??c.name,ps=drafts['c-persona']??c.persona,rf=drafts['c-ref']??(c.ref||''),mmv=drafts['c-mem']??(c.mem||'');
   const pv=formImg&&IMG.test(formImg)?`<div class="av l" id="c-av" style="background-image:url('${formImg}')"></div>`:`<div class="av l" id="c-av">${esc((nm||'?').slice(0,1))}</div>`;
   return subHead(id==='new'?'新增角色':'編輯角色')+`<div class="form"><div class="avedit">${pv}<div style="display:flex;flex-direction:column;gap:8px"><label class="btn ghost sm" style="display:inline-flex;flex-direction:row;align-items:center;cursor:pointer;font-size:14px">上傳頭像<input type="file" id="c-file" accept="image/*" hidden></label>${formImg?'<button class="btn ghost sm" data-act="rmImg">移除頭像</button>':''}</div></div>
   <div><div style="font-weight:700;font-size:14px;margin-bottom:6px">代表色</div><div class="sw">${COLORS.map(col=>`<button data-act="color" data-id="${col}" class="${col===formColor?'on':''}" style="background:${col}" aria-label="顏色"></button>`).join('')}</div></div>
   <label>名字<input type="text" id="c-name" value="${esc(nm)}" maxlength="20" placeholder="角色的名字"></label>
   <label>人設 <em>越詳細，角色越像他自己。可以直接貼上，或從檔案匯入（.txt、.md、Word .docx）。</em><textarea id="c-persona" maxlength="${PMAX}" placeholder="${esc(TPL)}">${esc(ps)}</textarea></label>
   <div class="btns" style="align-items:center;margin-top:-8px"><label class="btn ghost sm" style="display:inline-flex;flex-direction:row;align-items:center;cursor:pointer;font-size:14px">從檔案匯入人設<input type="file" id="c-pfile" accept=".txt,.md,.docx,.json,.csv,text/*" hidden></label><span class="note" style="margin:0" id="c-pcount">${cnt(ps,PMAX)}</span></div>
+  <label>他必須記得的事 <em>你們的關係、重要的回憶、約定、稱呼、你的喜好…這些每次對話都會提醒他。寫重點就好，越精簡越有效。也可以在聊天室點一下訊息，直接加進來。</em><textarea id="c-mem" maxlength="${MMAX}" style="min-height:160px" placeholder="例如：\n・我們是青梅竹馬，他叫我「小花」\n・2024 年夏天一起去過墾丁，他在海邊跟我告白\n・我怕打雷，打雷時他會打電話給我\n・我不吃香菜">${esc(mmv)}</textarea></label>
+  <div class="note" style="margin-top:-10px" id="c-mcount">${cnt(mmv,MMAX)}</div>
+  ${(()=>{const others=Object.keys(S.chars).filter(x=>x!==id);if(!others.length)return'';return`<div><div style="font-weight:600;font-size:13px">他和其他角色的關係（選填）</div><div class="note" style="margin:4px 0 10px">不填也可以，AI 會依人設自己判斷，例如大家都是你的另一半，就會互相吃醋。想特別指定時再寫。</div>${others.map(o=>{const k='c-rel-'+o,v=drafts[k]??((c.rel||{})[o]||'');return`<label style="flex-direction:row;align-items:flex-start;gap:12px;margin-bottom:12px">${av(o,'s')}<span style="flex:1;display:flex;flex-direction:column;gap:6px">${esc(chName(o))}<textarea id="${k}" maxlength="600" style="min-height:64px" placeholder="例如：親哥哥，覺得他太愛管閒事，但真的出事會第一個衝過去">${esc(v)}</textarea></span></label>`}).join('')}</div>`})()}
   <label>參考對話 <em>選填。上傳你跟這個角色以前的聊天紀錄（例如 LINE 匯出的 .txt），他會學著用一樣的語氣跟你說話。太長的話會保留最新的部分。</em><textarea id="c-ref" maxlength="${RMAX}" style="min-height:140px" placeholder="可以貼上對話，或用下面的按鈕上傳檔案">${esc(rf)}</textarea></label>
   <div class="btns" style="align-items:center;margin-top:-8px"><label class="btn ghost sm" style="display:inline-flex;flex-direction:row;align-items:center;cursor:pointer;font-size:14px">上傳對話檔案<input type="file" id="c-rfile" accept=".txt,.md,.docx,.json,.csv,text/*" hidden></label>${rf?'<button class="btn ghost sm" data-act="clrRef">清除</button>':''}<span class="note" style="margin:0" id="c-rcount">${cnt(rf,RMAX)}</span></div>
   <label class="chk"><input type="checkbox" id="c-pro" ${(drafts['c-pro']??(c.pro!==false))?'checked':''}>會主動傳訊息給我</label>
@@ -434,27 +526,53 @@ function vAI(){
   <p class="note">金鑰只存在這支手機的瀏覽器裡，不會傳給任何人。免費版的對話內容可能會被 Google 用來改進產品。</p></div>`;
   return h;
 }
-function vMe(){
-  let h=head('我')+vAI()+`<div class="sec"><h2>我的名字</h2><div class="form" style="padding:0"><label>角色們會這樣叫你<input type="text" id="me-name" value="${esc(drafts['me-name']??S.profile.me??'')}" maxlength="20" placeholder="例如：小花"></label></div></div>`;
-  const fq=S.profile.pro||'some';
-  h+=`<div class="sec"><h2>角色主動傳訊息</h2><div class="form" style="padding:0"><label>多久找你一次<select id="pro-freq">${[['off','關閉'],['rare','偶爾（約 8 小時）'],['some','有時候（約 4 小時）'],['often','常常（約 1.5 小時）'],['clingy','很黏人（約 30 分鐘）']].map(([v,l])=>`<option value="${v}" ${fq===v?'selected':''}>${l}</option>`).join('')}</select></label></div><p class="note">你打開角色圈的時候，好一陣子沒聊天的角色會傳訊息給你；頁面開著時也會不定時收到。關掉頁面期間不會發送通知。每個角色可以在「角色」裡個別關掉。</p></div>`;
+function vCycle(){
   const p=S.profile.period,st=per();
-  h+=`<div class="sec"><h2>生理期</h2>`;
+  let h=head('週期',st?`<button class="icon" data-act="perEdit" aria-label="週期設定">${ic('gear')}</button>`:'');
   if(!st||V.perEdit){
     const last=st?st.last:'',cyc=p?.cycle||28,len=p?.len||5,adv=p?.adv??2;
-    h+=`<div class="form" style="padding:0"><label>最近一次開始的日期<input type="date" id="p-last" value="${last}" max="${today()}"></label><label>週期大約幾天 <em>記錄兩次以上後會自動用平均值</em><input type="number" id="p-cyc" value="${cyc}" min="18" max="45"></label><label>經期大約幾天<input type="number" id="p-len" value="${len}" min="2" max="10"></label>
-    <label>誰來關心你<select id="p-by"><option value="">不用提醒</option>${Object.keys(S.chars).map(id=>`<option value="${id}" ${p?.by===id?'selected':''}>${esc(chName(id))}</option>`).join('')}</select></label><label>提前幾天開始關心<input type="number" id="p-adv" value="${adv}" min="0" max="5"></label>
+    return h+`${st?'':'<p class="note" style="padding:0 20px">先填一次上次的日期，SynDay 就能幫你預測下一次，也能請角色在那幾天特別關心你。</p>'}<div class="form"><label>最近一次開始的日期<input type="date" id="p-last" value="${last}" max="${today()}"></label><label>週期大約幾天 <em>記錄兩次以上後會自動用平均值</em><input type="number" id="p-cyc" value="${cyc}" min="18" max="45"></label><label>經期大約幾天<input type="number" id="p-len" value="${len}" min="2" max="10"></label>
+    <label>誰來關心你<select id="p-by"><option value="">不用</option>${Object.keys(S.chars).map(id=>`<option value="${id}" ${p?.by===id?'selected':''}>${esc(chName(id))}</option>`).join('')}</select></label><label>提前幾天開始關心<input type="number" id="p-adv" value="${adv}" min="0" max="5"></label>
     <div class="btns"><button class="btn" data-act="savePer">儲存</button>${st?'<button class="btn ghost" data-act="perCancel">取消</button>':''}</div></div>`;
-  }else{
-    const big={in:`經期第 ${st.day} 天`,soon:`還有 ${st.to} 天`,normal:`還有 ${st.to} 天`,due:'預計今天',late:`晚了 ${-st.to} 天`}[st.kind];
-    const lbl={in:'經期中',soon:'快來了',normal:'距離下次',due:'下次經期',late:'比預期晚'}[st.kind];
-    const cells=Array.from({length:st.cyc},(_,i)=>`<i class="${i<st.len?'pp':''} ${i===st.d?'td':''}"></i>`).join('');
-    const by=p.by&&S.chars[p.by];
-    h+=`<div class="cyc"><div class="lbl">${lbl}</div><div class="big">${big}</div><div class="subt">下次預計 ${md(st.next)} 開始 · 週期 ${st.cyc} 天${st.avg?'（依紀錄平均）':''}</div><div class="bar" aria-hidden="true">${cells}</div><div class="barlbl"><span>${md(st.last)} 開始</span><span>${md(st.next)}</span></div></div>
-    <p class="note">${by?`${esc(by.name)}會在經期前 ${p.adv??2} 天和經期間傳訊息關心你。`:'在設定裡選一個角色，他就會在經期前後主動關心你。'}</p>
-    <div class="btns" style="margin-top:14px"><button class="btn" data-act="perToday">今天來了</button><button class="btn ghost" data-act="perEdit">設定</button></div>
-    <div class="hist">${st.hist.slice(-6).reverse().map(d=>`<span>${md(d)}</span>`).join('')}</div>${st.hist.length>1?'<p class="note"><button class="btn ghost sm" data-act="perUndo">刪除最近一筆紀錄</button></p>':''}`;
   }
+  const big={in:`經期第 ${st.day} 天`,soon:`還有 ${st.to} 天`,normal:`還有 ${st.to} 天`,due:'預計今天',late:`晚了 ${-st.to} 天`}[st.kind];
+  const lbl={in:'經期中',soon:'快來了',normal:'距離下次經期',due:'下次經期',late:'比預期晚'}[st.kind];
+  h+=`<div class="sumc"><div><div class="lbl">${lbl}</div><div class="big">${big}</div><div class="subt">下次預計 ${md(st.next)} · 週期 ${st.cyc} 天${st.avg?'（平均）':''}</div></div>${st.kind!=='in'?'<button class="btn sm" data-act="perToday">今天來了</button>':''}</div>`;
+  const by=p.by&&S.chars[p.by]?p.by:'',lc=p.lastCare;
+  if(by&&busy['dm_'+by]&&(V.selDay||today())!==today())h+=`<div class="care">${av(by,'s')}<div class="body"><b>${esc(chName(by))}</b><div class="tx" style="color:var(--mut)">正在輸入…</div></div></div>`;
+  else if(lc&&S.chars[lc.by]&&Date.now()-lc.ts<3*864e5&&dOf(lc.ts)!==(V.selDay||today()))h+=`<div class="care">${av(lc.by,'s')}<div class="body"><b>${esc(chName(lc.by))}</b><time>${ago(lc.ts)}</time><div class="tx">${esc(lc.t)}</div></div><button class="btn sm ghost" data-act="dm" data-id="${lc.by}">回覆</button></div>`;
+  else if(!by)h+=`<p class="note" style="padding:0 20px">按右上角的齒輪選一個角色，他就會在經期前後關心你，也能看你記錄的狀態。</p>`;
+  const cm=V.calM||today().slice(0,7),[y,mo]=cm.split('-').map(Number);
+  const dow=new Date(Date.UTC(y,mo-1,1)).getUTCDay(),days=new Date(Date.UTC(y,mo,0)).getUTCDate();
+  const m=cycleMap(),lg=dlog(),t=today(),sel=V.selDay||t,cl=careLog();
+  let cells='';for(let i=0;i<dow;i++)cells+='<i></i>';
+  for(let d=1;d<=days;d++){const k=`${y}-${pad(mo)}-${pad(d)}`;cells+=`<button class="cd ${m[k]||''} ${k===t?'td':''} ${k===sel?'sel':''} ${hasLog(lg[k])?'lg':''}" data-act="day" data-id="${k}" aria-label="${mo}月${d}日${cl[k]?'，有角色的話':''}">${cl[k]?'<em class="hc">♥</em>':''}<span>${d}</span></button>`}
+  h+=`<div class="cal"><div class="calh"><button class="icon" data-act="calMove" data-id="-1" aria-label="上個月">${ic('back')}</button><b>${y} 年 ${mo} 月</b><button class="icon" data-act="calMove" data-id="1" aria-label="下個月">${ic('fwd')}</button></div><div class="wk">${[...WD].map(w=>`<span>${w}</span>`).join('')}</div><div class="cg">${cells}</div></div>
+  <div class="legend"><span><i style="background:var(--acc)"></i>經期</span><span><i style="border:1.5px dashed var(--acc)"></i>預測經期</span><span><i style="border:1.5px dashed var(--mut)"></i>排卵日（推估）</span><span><i style="background:var(--ink);width:6px;height:6px"></i>有紀錄</span><span><b style="color:var(--acc);font-weight:400;margin-right:4px">♥</b>角色的話</span></div>`;
+  const L=lg[sel]||{},[,sm,sd]=sel.split('-').map(Number),isStart=(p.hist||[]).includes(sel),fut=sel>t;
+  const tag=m[sel]==='pp'?'經期':m[sel]==='pred'?'預測經期':m[sel]==='ov'?'排卵日（推估）':'';
+  h+=`<div class="day"><h3>${sm} 月 ${sd} 日（${WD[new Date(Date.UTC(y,sm-1,sd)).getUTCDay()]}）${sel===t?' · 今天':''}</h3>${tag?`<div class="tag">${tag}</div>`:''}`;
+  const dc=(cl[sel]||[]).filter(r=>S.chars[r.by]);
+  if(dc.length)h+=`<div class="cares">${dc.map(r=>`<div class="care">${av(r.by,'s')}<div class="body"><b>${esc(chName(r.by))}</b><time>${fmtT(r.ts)}${r.kind==='log'?' · 回應你的紀錄':' · 主動關心'}</time><div class="tx">${esc(r.t)}</div></div><button class="btn sm ghost" data-act="dm" data-id="${r.by}">回覆</button></div>`).join('')}</div>`;
+  if(by&&sel===t&&busy['dm_'+by])h+=`<div class="care">${av(by,'s')}<div class="body"><b>${esc(chName(by))}</b><div class="tx" style="color:var(--mut)">正在輸入…</div></div></div>`;
+  if(fut&&by&&(m[sel]==='pred'||(dn(sel)>=dn(st.next)-(p.adv??2)&&dn(sel)<dn(st.next))))h+=`<div class="soon">${m[sel]==='pred'?'預計是經期。':'經期快到了。'}${esc(chName(by))}會在這幾天傳訊息關心你。</div>`;
+  if(fut)h+=`<p class="note">還沒到這一天，到時候再來記錄吧。</p>`;
+  else{
+    h+=`<h4>經血量</h4><div class="chips">${FLOW.map(([v,l])=>`<button class="chip ${L.flow===v?'on':''}" data-act="lgFlow" data-id="${v}">${l}</button>`).join('')}</div>
+    <h4>身體</h4><div class="chips">${SYM.map(v=>`<button class="chip ${(L.sym||[]).includes(v)?'on':''}" data-act="lgSym" data-id="${v}">${v}</button>`).join('')}</div>
+    <h4>心情</h4><div class="chips">${MOOD.map(v=>`<button class="chip ${L.mood===v?'on':''}" data-act="lgMood" data-id="${v}">${v}</button>`).join('')}</div>
+    <h4>想說的話</h4><textarea id="d-note" placeholder="今天的狀況、想記下來的事…">${esc(drafts['d-note']??L.note??'')}</textarea>
+    <div class="btns" style="margin-top:14px">${sel===t&&by?`<button class="btn" data-act="tellChar" ${busy['dm_'+by]?'disabled':''}>告訴${esc(chName(by))}</button>`:''}<button class="btn ghost" data-act="${isStart?'unStart':'startHere'}">${isStart?'取消「這天開始」':'這天開始經期'}</button></div>`;
+  }
+  h+=`</div>`;
+  if(st.hist.length)h+=`<div class="sec" style="border:0;padding-top:0"><h2>開始日紀錄</h2><div class="hist" style="margin:0">${st.hist.slice(-8).reverse().map(d=>`<span>${md(d)}</span>`).join('')}</div></div>`;
+  return h;
+}
+function vMe(){
+  let h=head('我')+`<div class="sec"><h2>我的大頭貼和名字</h2><div class="form" style="padding:0"><div class="avedit">${av('me','l')}<div style="display:flex;flex-direction:column;gap:8px"><label class="btn ghost sm" style="display:inline-flex;flex-direction:row;align-items:center;cursor:pointer;font-size:14px">${S.profile.img?'換一張照片':'上傳照片'}<input type="file" id="me-file" accept="image/*" hidden></label>${S.profile.img?'<button class="btn ghost sm" data-act="rmMeImg">移除照片</button>':''}</div></div><label>角色們會這樣叫你<input type="text" id="me-name" value="${esc(drafts['me-name']??S.profile.me??'')}" maxlength="20" placeholder="例如：小花"></label></div></div>`+vAI();
+  const fq=S.profile.pro||'some';
+  h+=`<div class="sec"><h2>角色主動傳訊息</h2><div class="form" style="padding:0"><label>多久找你一次<select id="pro-freq">${[['off','關閉'],['rare','偶爾（約 8 小時）'],['some','有時候（約 4 小時）'],['often','常常（約 1.5 小時）'],['clingy','很黏人（約 30 分鐘）']].map(([v,l])=>`<option value="${v}" ${fq===v?'selected':''}>${l}</option>`).join('')}</select></label></div><p class="note">你打開 SynDay 的時候，好一陣子沒聊天的角色會傳訊息給你；頁面開著時也會不定時收到。關掉頁面期間不會發送通知。每個角色可以在「角色」裡個別關掉。</p></div>`;
+  h+=`<div>`;
   h+=`</div><div class="sec" style="border:0"><h2>備份</h2><p class="note" style="margin:0 0 14px">角色、聊天和紀錄都只存在這支手機的瀏覽器裡。換手機或清除瀏覽器資料之前，記得先匯出備份。</p>`;
   if(impData)h+=`<div class="aiok" style="flex-wrap:wrap"><span style="color:var(--ink);white-space:normal">這份備份有 ${Object.keys(impData.chars||{}).length} 個角色、${Object.keys(impData.posts||{}).length} 篇貼文。匯入會取代目前的資料。</span><div class="btns"><button class="btn sm warn" data-act="impOk">確認匯入</button><button class="btn sm ghost" data-act="impNo">取消</button></div></div>`;
   h+=`<div class="btns"><button class="btn ghost" data-act="exp">匯出備份</button><label class="btn ghost" style="display:inline-flex;align-items:center;cursor:pointer">匯入備份<input type="file" id="imp" accept=".json,application/json" hidden></label></div></div>`;
@@ -465,8 +583,8 @@ function render(){
   const y=window.scrollY,chatBefore=document.querySelectorAll('.chat .m,.cm').length;
   const s=V.sub;let body;
   if(s?.k==='conv')body=vConv(s.id);else if(s?.k==='post')body=vPost(s.id);else if(s?.k==='char')body=vCharEdit(s.id);else if(s?.k==='group')body=vGroup();
-  else body={chats:vChats,feed:vFeed,chars:vChars,me:vMe}[V.tab]();
-  const tabs=s?'':`<nav class="tabs">${[['chats','聊天','chat'],['feed','動態','feed'],['chars','角色','chars'],['me','我','me']].map(([k,l,i])=>`<button class="${V.tab===k?'on':''}" data-act="tab" data-id="${k}" aria-label="${l}">${ic(i)}<span class="sr">${l}</span>${k==='chats'&&(careDue()||anyUnread())&&V.tab!=='chats'?'<span class="dot"></span>':''}</button>`).join('')}</nav>`;
+  else body={chats:vChats,feed:vFeed,chars:vChars,cycle:vCycle,me:vMe}[V.tab]();
+  const tabs=s?'':`<nav class="tabs">${[['chats','聊天','chat'],['feed','動態','feed'],['cycle','週期','cal'],['chars','角色','chars'],['me','我','me']].map(([k,l,i])=>`<button class="${V.tab===k?'on':''}" data-act="tab" data-id="${k}" aria-label="${l}">${ic(i)}<span class="sr">${l}</span>${k==='chats'&&(careDue()||anyUnread())&&V.tab!=='chats'?'<span class="dot"></span>':''}</button>`).join('')}</nav>`;
   app.innerHTML=`${body.startsWith('<header')?'':''}${body.replace(/^(<header[\s\S]*?<\/header>)/,'$1<main>')}</main>${tabs}`;
   if(fid){const el=document.getElementById(fid);if(el){el.focus({preventScroll:true});try{el.setSelectionRange(sel,sel)}catch(e){}}}
   document.querySelectorAll('.inbar textarea').forEach(grow);
@@ -475,21 +593,22 @@ function render(){
   else window.scrollTo(0,y);
 }
 function grow(t){t.style.height='auto';t.style.height=Math.min(120,t.scrollHeight)+'px'}
-function go(sub,tab){V.sub=sub;if(tab)V.tab=tab;delArm=null;render.jump=sub?.k==='conv'?'bottom':'top';render();
+function go(sub,tab){V.pick=null;V.sub=sub;if(tab)V.tab=tab;delArm=null;render.jump=sub?.k==='conv'?'bottom':'top';render();
   if(sub?.k==='conv'){const cv=S.convs[sub.id];if(cv&&cv.unread){cv.unread=0;save('convs',sub.id);render()}const p=S.profile.period;if(careDue()&&sub.id==='dm_'+p.by)setTimeout(()=>replyDM(sub.id,true),500)}}
 
 /* ---------- actions ---------- */
 function sendMsg(){
   const id=V.sub.id,k='in-'+id,el=document.getElementById(k),t=(el?.value||'').trim();if(!t)return;
   push(id,'me',t);drafts[k]='';save('convs',id);render();window.scrollTo(0,document.body.scrollHeight);
-  clearTimeout(timers[id]);timers[id]=setTimeout(()=>{S.convs[id]?.type==='group'?replyGroup(id):replyDM(id)},1600);
+  schedReply(id);
 }
+function schedReply(id,ms=1600){clearTimeout(timers[id]);timers[id]=setTimeout(()=>{delete timers[id];S.convs[id]?.type==='group'?replyGroup(id):replyDM(id)},ms)}
 function sendComment(){
   const id=V.sub.id,k='in-cm-'+id,el=document.getElementById(k),t=(el?.value||'').trim();if(!t)return;
-  const p=S.posts[id];p.cm.push({f:'me',t,ts:Date.now()});drafts[k]='';save('posts',id);render();genComments(id);
+  const p=S.posts[id],to=V.replyTo&&V.replyTo[id];p.cm.push({f:'me',t,ts:Date.now(),...(to?{to}:{})});if(V.replyTo)delete V.replyTo[id];drafts[k]='';save('posts',id);render();genComments(id);
 }
 const act={
-  tab:id=>{V.tab=id;go(null)},back:()=>{formImg=undefined;formColor=null;['c-name','c-persona','g-name'].forEach(k=>delete drafts[k]);go(null)},
+  tab:id=>{V.tab=id;go(null)},back:()=>{formImg=undefined;formColor=null;['c-name','c-persona','c-ref','c-mem','c-pro','g-name'].forEach(k=>delete drafts[k]);Object.keys(drafts).filter(k=>k.startsWith('c-rel-')).forEach(k=>delete drafts[k]);go(null)},
   openConv:id=>go({k:'conv',id}),openPost:id=>go({k:'post',id}),
   newChar:()=>{formImg=undefined;formColor=null;go({k:'char',id:'new'})},editChar:id=>{formImg=undefined;formColor=null;go({k:'char',id})},
   dm:id=>{const cv=ensureDM(id);formImg=undefined;formColor=null;V.tab='chats';go({k:'conv',id:cv})},
@@ -499,10 +618,12 @@ const act={
     if(!name){toast('先幫角色取個名字');$('#c-name').focus();return}
     const cid=id==='new'?nid():id;const old=S.chars[cid]||{created:Date.now()};
     const ref=($('#c-ref').value||'').trim();
-    const next={...old,name,persona,ref,color:formColor||COLORS[0],img:formImg||'',pro:$('#c-pro').checked};
+    const mem=($('#c-mem').value||'').trim();
+    const rel={...(old.rel||{})};document.querySelectorAll('[id^="c-rel-"]').forEach(el=>{const o=el.id.slice(6);const v=el.value.trim();if(v)rel[o]=v;else delete rel[o]});
+    const next={...old,name,persona,ref,mem,rel,color:formColor||COLORS[0],img:formImg||'',pro:$('#c-pro').checked};
     if(new Blob([JSON.stringify(next)]).size>240000){toast('人設和參考對話加起來太長了，刪掉一些再存');return}
     S.chars[cid]=next;save('chars',cid);ensureDM(cid);
-    ['c-name','c-persona','c-pro','c-ref'].forEach(k=>delete drafts[k]);formImg=undefined;formColor=null;toast(id==='new'?`${name} 加入了角色圈`:'已儲存');V.tab='chars';go(null);
+    ['c-name','c-persona','c-pro','c-ref','c-mem'].forEach(k=>delete drafts[k]);Object.keys(drafts).filter(k=>k.startsWith('c-rel-')).forEach(k=>delete drafts[k]);formImg=undefined;formColor=null;toast(id==='new'?`${name} 加入了 SynDay`:'已儲存');V.tab='chars';go(null);
   },
   delChar:id=>{
     if(delArm!==id){delArm=id;render();return}
@@ -515,7 +636,7 @@ const act={
   newGroup:()=>{grpSel=new Set();delete drafts['g-name'];go({k:'group'})},
   gsel:(id,b)=>{b.checked?grpSel.add(id):grpSel.delete(id);render()},
   makeGroup:()=>{if(grpSel.size<2)return;const id='g_'+nid();S.convs[id]={type:'group',title:(drafts['g-name']||'').trim(),members:[...grpSel],msgs:[],ts:Date.now()};save('convs',id);delete drafts['g-name'];go({k:'conv',id})},
-  send:sendMsg,nudge:()=>{const id=V.sub.id;clearTimeout(timers[id]);S.convs[id].type==='group'?replyGroup(id):replyDM(id)},
+  send:sendMsg,nudge:()=>{const id=V.sub.id;clearTimeout(timers[id]);delete timers[id];S.convs[id].type==='group'?replyGroup(id):replyDM(id)},
   comment:sendComment,genPost:()=>genPost(),
   post:async()=>{const t=(drafts['in-post']||'').trim();if((!t&&!postFiles.length)||busy.posting)return;
     let imgs=[];
@@ -525,6 +646,25 @@ const act={
     const id=nid();S.posts[id]={a:'me',t,imgs,ts:Date.now(),liked:false,lk:[],cm:[]};drafts['in-post']='';
     postFiles.forEach(f=>URL.revokeObjectURL(f.url));postFiles=[];save('posts',id);prunePosts();render();genComments(id)},
   clrRef:()=>{drafts['c-ref']='';render()},
+  rmMeImg:()=>{S.profile.img='';save('profile','p');render()},
+  pickMsg:i=>{const cv=V.sub&&V.sub.id;if(!cv)return;V.pick=(V.pick&&V.pick.cv===cv&&V.pick.i===+i)?null:{cv,i:+i};render()},
+  pickNo:()=>{V.pick=null;render()},
+  remember:cid=>{const pk=V.pick,c=S.convs[pk.cv],m=c&&c.msgs[pk.i],ch=S.chars[cid];if(!m||!ch)return;
+    const line=`・${md(dOf(m.ts))} ${m.f==='me'?((S.profile.me||'').trim()||'對方'):chName(m.f)}說：「${m.t.replace(/\s+/g,' ').slice(0,300)}」`;
+    const cur=(ch.mem||'').trim();if(cur.includes(line)){toast('已經記住了');V.pick=null;render();return}
+    if((cur+'\n'+line).length>MMAX){toast(`${ch.name}的記憶滿了，到角色頁整理一下`);return}
+    ch.mem=cur?cur+'\n'+line:line;save('chars',cid);V.pick=null;render();toast(`${ch.name}會記住這件事`)},
+  day:id=>{if(V.selDay!==id){V.selDay=id;delete drafts['d-note']}render()},
+  calMove:n=>{const[y,m]=(V.calM||today().slice(0,7)).split('-').map(Number);const d=new Date(Date.UTC(y,m-1+(+n),1));V.calM=d.toISOString().slice(0,7);render()},
+  lgFlow:v=>{const d=V.selDay||today(),L=dlog()[d]||(dlog()[d]={});L.flow=L.flow===v?'':v;tidy(d);save();render()},
+  lgSym:v=>{const d=V.selDay||today(),L=dlog()[d]||(dlog()[d]={});const a=L.sym||[];L.sym=a.includes(v)?a.filter(x=>x!==v):[...a,v];tidy(d);save();render()},
+  lgMood:v=>{const d=V.selDay||today(),L=dlog()[d]||(dlog()[d]={});L.mood=L.mood===v?'':v;tidy(d);save();render()},
+  startHere:()=>{const d=V.selDay||today(),p=S.profile.period;if(!p.hist.includes(d))p.hist=[...p.hist,d].sort().slice(-24);if(d===today())p.lastRemind='';save();toast(`已記錄 ${md(d)} 開始`);render()},
+  unStart:()=>{const d=V.selDay||today(),p=S.profile.period;if(p.hist.length<=1){toast('至少要留一筆開始日，可以到齒輪裡修改');return}p.hist=p.hist.filter(x=>x!==d);save();render()},
+  tellChar:()=>{const by=S.profile.period.by;if(!by||!S.chars[by])return;const el=$('#d-note');if(el){const L=dlog()[today()]||(dlog()[today()]={});L.note=el.value.trim();tidy(today());save()}
+    if(!logText(today())){toast('先選一下今天的狀態');return}ensureDM(by);replyDM('dm_'+by,'log');toast(`已經告訴${chName(by)}了`)},
+  replyTo:id=>{const[pid,f]=id.split('|');(V.replyTo||(V.replyTo={}))[pid]=f;render();const el=document.getElementById('in-cm-'+pid);if(el)el.focus()},
+  moreCm:id=>genComments(id,'more'),
   aiSave:async()=>{const el=$('#ai-key'),k=((el&&el.value)||drafts['ai-key']||'').trim();if(!k){toast('先貼上金鑰');return}
     busy.ai=true;render();
     try{models=await loadModels(k)}catch(e){delete busy.ai;render();toast(e===400||e===403?'這把金鑰不能用，確認有沒有完整複製':'連不上 Google，檢查網路後再試');return}
@@ -532,7 +672,7 @@ const act={
     try{await ask('只回覆 OK',null,true)}catch(e){if(e===404){const m=models.find(x=>/flash-lite/i.test(x.id))||models[0];if(m)AI.model=m.id}}
     saveAI();delete drafts['ai-key'];delete busy.ai;noAIUntil=0;render();toast('連線成功！角色可以開始說話了');proCheck()},
   aiRemove:()=>{AI.key='';models=null;saveAI();render();toast('已移除金鑰')},
-  exp:()=>{flush();const blob=new Blob([JSON.stringify({app:'jiaoseq',v:1,at:Date.now(),...S})],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`角色圈備份-${today()}.json`;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},2000);toast('已匯出備份檔')},
+  exp:()=>{flush();const blob=new Blob([JSON.stringify({app:'jiaoseq',v:1,at:Date.now(),...S})],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`SynDay備份-${today()}.json`;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},2000);toast('已匯出備份檔')},
   impOk:()=>{const d=impData;impData=null;for(const k of['chars','convs','posts'])S[k]=d[k]&&typeof d[k]==='object'?d[k]:{};S.profile=d.profile&&typeof d.profile==='object'?d.profile:{me:'',period:null};flush();V.tab='chats';go(null);toast('備份已匯入')},
   impNo:()=>{impData=null;render()},
   rmPhoto:i=>{const f=postFiles.splice(+i,1)[0];if(f)URL.revokeObjectURL(f.url);render()},
@@ -550,6 +690,7 @@ $('#lb').addEventListener('click',()=>$('#lb').classList.remove('on'));
 document.addEventListener('keydown',e=>{if(e.key==='Escape')$('#lb').classList.remove('on')});
 app.addEventListener('click',e=>{const b=e.target.closest('[data-act]');if(!b)return;if(b.dataset.act==='like'||b.dataset.act==='zoom'||b.dataset.act==='rmPhoto'||b.closest('.acts'))e.stopPropagation();const f=act[b.dataset.act];if(f){if(b.tagName!=='INPUT')e.preventDefault();f(b.dataset.id,b,e)}});
 app.addEventListener('input',e=>{const t=e.target;if(t.id==='c-pro')drafts[t.id]=t.checked;else if(t.id==='imp')return;else if(t.id&&t.type!=='file'&&t.type!=='checkbox'&&t.tagName!=='SELECT')drafts[t.id]=t.value;if(t.closest('.inbar'))grow(t);
+  if(t.id==='c-mem'){const el=$('#c-mcount');if(el)el.textContent=cnt(t.value,MMAX)}
   if(t.id==='c-persona'){const el=$('#c-pcount');if(el)el.textContent=cnt(t.value,PMAX)}
   if(t.id==='c-ref'){const el=$('#c-rcount');if(el)el.textContent=cnt(t.value,RMAX)}
   if(t.id==='c-name'&&!formImg){const a=$('#c-av');if(a)a.textContent=(t.value||'?').slice(0,1)}});
@@ -561,8 +702,13 @@ app.addEventListener('change',e=>{const t=e.target;
       const cur=(document.getElementById(key)?.value||'').trim();let v=cur?cur+'\n\n'+txt:txt;
       if(v.length>max){v=isP?v.slice(0,max):v.slice(-max);toast(isP?`人設太長，只保留前 ${max.toLocaleString()} 字`:`對話太長，保留最新的 ${max.toLocaleString()} 字`)}else toast(`已匯入「${f.name}」`);
       drafts[key]=v;render()}).catch(()=>toast('這個檔案讀不出來，試試 .txt 或 Word 檔'));t.value=''}
+  if(t.id==='chat-file'&&t.files.length&&V.sub&&V.sub.k==='conv'){const id=V.sub.id,fs=[...t.files].filter(f=>f.type.startsWith('image/')).slice(0,4);t.value='';
+    if(t.files.length>4)toast('一次最多傳 4 張');
+    (async()=>{for(const f of fs){try{const u=await shrink(f,1280,180000);push(id,'me','',u);save('convs',id);render();window.scrollTo(0,document.body.scrollHeight)}catch(e){toast('有照片讀不出來，換一張試試')}}schedReply(id,2200)})()}
+  if(t.id==='me-file'&&t.files[0]){const f=t.files[0];t.value='';const fr=new FileReader();fr.onload=()=>{const im=new Image();im.onload=()=>{const cv=document.createElement('canvas');cv.width=cv.height=200;const x=cv.getContext('2d'),q=Math.min(im.width,im.height);x.drawImage(im,(im.width-q)/2,(im.height-q)/2,q,q,0,0,200,200);S.profile.img=cv.toDataURL('image/jpeg',.85);save('profile','p');render();toast('大頭貼換好了')};im.onerror=()=>toast('這張圖片讀不出來');im.src=fr.result};fr.readAsDataURL(f)}
+  if(t.id==='d-note'){const d=V.selDay||today(),L=dlog()[d]||(dlog()[d]={});L.note=t.value.trim();delete drafts['d-note'];tidy(d);save()}
   if(t.id==='ai-model'){AI.model=t.value;saveAI();noAIUntil=0;toast('已換模型')}
-  if(t.id==='imp'&&t.files[0]){t.files[0].text().then(x=>{const d=JSON.parse(x);if(!d||typeof d!=='object'||!d.chars)throw 0;impData=d;render()}).catch(()=>toast('這不是角色圈的備份檔'));t.value=''}
+  if(t.id==='imp'&&t.files[0]){t.files[0].text().then(x=>{const d=JSON.parse(x);if(!d||typeof d!=='object'||!d.chars)throw 0;impData=d;render()}).catch(()=>toast('這不是 SynDay 的備份檔'));t.value=''}
   if(t.id==='pro-freq'){S.profile.pro=t.value;save('profile','p');toast(t.value==='off'?'角色不會主動傳訊息了':'已設定');proCheck()}
   if(t.id==='post-file'&&t.files.length){const room=4-postFiles.length;const fs=[...t.files].filter(f=>f.type.startsWith('image/')).slice(0,Math.max(0,room));
     if(t.files.length>room)toast('一篇最多 4 張照片');fs.forEach(f=>postFiles.push({file:f,url:URL.createObjectURL(f)}));render()}
