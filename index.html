@@ -2,6 +2,7 @@
 <html lang="zh-Hant"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>SynDay 共時</title>
 <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)"><meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)">
+<link rel="manifest" href="manifest.json"><link rel="apple-touch-icon" href="apple-touch-icon.png"><link rel="icon" href="icon-192.png">
 <meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="SynDay">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Noto+Sans+TC:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
@@ -206,6 +207,13 @@ const P={chat:'<path d="M4 5h16v11H10l-6 4z"/>',feed:'<circle cx="12" cy="12" r=
 const ic=(n,cls='')=>`<svg class="${cls}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${P[n]}</svg>`;
 
 const S={profile:{me:'',period:null},chars:{},convs:{},posts:{}};
+const PUSH_DEFAULT='';
+let PUSH={url:PUSH_DEFAULT,on:false,sub:null};try{PUSH=Object.assign(PUSH,JSON.parse(localStorage.getItem('jiaoseq-push')||'{}'))}catch(e){}
+if(!PUSH.url&&PUSH_DEFAULT)PUSH.url=PUSH_DEFAULT;
+const savePush=()=>{try{localStorage.setItem('jiaoseq-push',JSON.stringify(PUSH))}catch(e){}};
+const pushOn=()=>!!(PUSH.on&&PUSH.sub&&PUSH.url&&typeof Notification!=='undefined'&&Notification.permission==='granted');
+const isStandalone=()=>{try{return matchMedia('(display-mode: standalone)').matches||navigator.standalone===true}catch(e){return false}};
+const isIOS=/iP(hone|ad|od)/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
 const KEYS='jiaoseq-ai',GAPI='https://generativelanguage.googleapis.com/v1beta/',DEF_LITE='gemini-flash-lite-latest',DEF_FLASH='gemini-flash-latest';
 let AI={key:'',model:''};try{AI=Object.assign(AI,JSON.parse(localStorage.getItem(KEYS)||'{}'))}catch(e){}
 const saveAI=()=>{try{localStorage.setItem(KEYS,JSON.stringify(AI))}catch(e){}};
@@ -235,8 +243,10 @@ async function initStore(){
   try{const lc=S.profile.period&&S.profile.period.lastCare;if(lc&&!S.profile.careLog){addCare(dOf(lc.ts),lc);save()}}catch(e){}
   try{navigator.storage&&navigator.storage.persist&&navigator.storage.persist()}catch(e){}
   render();
-  setTimeout(proCheck,1500);setInterval(proCheck,4*60e3);
-  document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')proCheck();else if(saveT)flush()});
+  if(PUSH.on&&'serviceWorker' in navigator)navigator.serviceWorker.register('sw.js').catch(()=>{});
+  deliverDue();
+  setTimeout(()=>{proCheck();planPush()},1500);setInterval(()=>{deliverDue();proCheck();planPush()},60e3);
+  document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'){deliverDue();proCheck();planPush()}else{if(saveT)flush();syncPush()}});
 }
 
 /* ---------- helpers ---------- */
@@ -375,12 +385,81 @@ async function replyDM(cv,mode){
   delete busy[cv];render();
 }
 async function proCheck(){
-  if(proBusy||!AI.key||Date.now()<noAIUntil)return;const h=FREQ[S.profile.pro||'some'];if(!h)return;
+  if(proBusy||!AI.key||Date.now()<noAIUntil||pushOn())return;const h=FREQ[S.profile.pro||'some'];if(!h)return;
   const now=Date.now(),gap=h*36e5*(0.8+Math.random()*0.4);
   const cand=Object.keys(S.chars).filter(id=>{const ch=S.chars[id];if(ch.pro===false)return false;const cv=S.convs['dm_'+id];if(!cv||busy['dm_'+id]||timers['dm_'+id])return false;
     const last=cv.msgs.length?cv.msgs[cv.msgs.length-1].ts:(ch.created||cv.ts);return now-last>gap&&now-(ch.lastPro||0)>gap});
   if(!cand.length)return;
   proBusy=true;try{await replyDM('dm_'+cand[Math.floor(Math.random()*cand.length)],'pro')}finally{proBusy=false}
+}
+/* ---------- 手機通知：預先寫好、隨機時間 ---------- */
+let planBusy=false,lastSync='',lastAct=0;
+function quietCfg(){return Object.assign({on:true,from:1,to:8},S.profile.quiet||{})}
+function inQuiet(ts){const q=quietCfg();if(!q.on||q.from===q.to)return false;const h=new Date(ts).getHours();return q.from<q.to?(h>=q.from&&h<q.to):(h>=q.from||h<q.to)}
+function skipQuiet(ts){let t=ts,i=0;while(inQuiet(t)&&i<30){const d=new Date(t);d.setMinutes(0,0,0);d.setHours(d.getHours()+1);t=d.getTime()+Math.random()*40*60e3;i++}return t}
+async function genPro(cid,at){
+  const ch=S.chars[cid],c=S.convs['dm_'+cid];if(!ch||!c)return null;
+  const d=new Date(at),last=c.msgs[c.msgs.length-1];const st=per(),pt=st?perText(st):'';
+  const prompt=`你正在扮演一個角色，在類似 LINE 的聊天軟體裡和「${meName()}」私訊。\n\n${persona(ch,true)}\n\n這則訊息會在星期${WD[d.getDay()]} ${pad(d.getHours())}:${pad(d.getMinutes())}（${meName()}那邊的時間）傳出。${last?`那時距離你們上一則訊息大約過了 ${Math.max(1,Math.round((at-last.ts)/36e5))} 小時。`:'你們還沒聊過天。'}你突然想主動傳訊息給${meName()}：可以分享你那時正在做的事、突然想到她、問候、碎碎念、或接續之前的話題，要符合角色個性和那個時間點。不要每次都問「在幹嘛」，也不要提到「通知」或「排程」。${pt?`（背景資訊，自然時才提：${pt}）`:''}\n\n最近的對話：\n${hist(c)}\n\n現在換「${ch.name}」傳訊息。1 到 2 則，每則一行，簡短。只輸出訊息本身，不要加名字或引號。${RULE}`;
+  const t=await ask(prompt,null,true);return lines(t,[ch.name]).map(l=>l.t).filter(Boolean).slice(0,2);
+}
+async function planPush(){
+  if(!pushOn()||!AI.key||planBusy||Date.now()<noAIUntil)return;
+  const h=FREQ[S.profile.pro||'some'];if(!h)return;
+  if(Date.now()-lastAct<3*60e3)return;
+  const q=S.pushq||(S.pushq=[]),now=Date.now();
+  const want=Math.min(4,Math.max(1,Math.round(24/h))),fut=q.filter(x=>x.at>now);
+  if(fut.length>=want){syncPush();return}
+  const cands=Object.keys(S.chars).filter(id=>S.chars[id].pro!==false);if(!cands.length)return;
+  planBusy=true;
+  try{let last=Math.max(now,...fut.map(x=>x.at));
+    for(let n=fut.length;n<want;n++){
+      const at=skipQuiet(last+h*36e5*(0.55+Math.random()*0.9));if(at>now+3*864e5)break;
+      const cid=cands[Math.floor(Math.random()*cands.length)];ensureDM(cid);
+      const t=await genPro(cid,at);if(!t||!t.length)break;
+      q.push({id:nid(),cid,at,t});last=at;save();
+    }
+  }catch(e){}
+  planBusy=false;syncPush();
+}
+function deliverDue(){
+  const q=S.pushq;if(!q||!q.length)return;const now=Date.now(),due=q.filter(x=>x.at<=now).sort((a,b)=>a.at-b.at);if(!due.length)return;
+  for(const it of due){const cv=S.convs['dm_'+it.cid];if(!cv||!S.chars[it.cid])continue;
+    it.t.forEach((t,i)=>cv.msgs.push({f:it.cid,t,ts:it.at+i*1500}));cv.msgs.sort((a,b)=>a.ts-b.ts);if(cv.msgs.length>300)cv.msgs=cv.msgs.slice(-300);
+    cv.ts=Math.max(cv.ts||0,it.at);if(!(V.sub&&V.sub.k==='conv'&&V.sub.id==='dm_'+it.cid&&document.visibilityState==='visible'))cv.unread=(cv.unread||0)+it.t.length;S.chars[it.cid].lastPro=it.at}
+  S.pushq=q.filter(x=>x.at>now);save();render();syncPush();
+}
+async function syncPush(force){
+  if(!PUSH.on||!PUSH.sub||!PUSH.url)return;
+  const items=(S.pushq||[]).filter(x=>x.at>Date.now()&&S.chars[x.cid]).map(x=>({at:x.at,title:chName(x.cid),body:x.t.join('\n').slice(0,180),tag:x.id,url:'./'}));
+  const body=JSON.stringify({sub:PUSH.sub,items});if(!force&&body===lastSync)return;
+  try{const r=await fetch(PUSH.url+'/schedule',{method:'POST',headers:{'Content-Type':'text/plain'},body,keepalive:body.length<60000});if(r.ok)lastSync=body}catch(e){}
+}
+function b64uToBytes(s){s=s.replace(/-/g,'+').replace(/_/g,'/');while(s.length%4)s+='=';const b=atob(s),a=new Uint8Array(b.length);for(let i=0;i<b.length;i++)a[i]=b.charCodeAt(i);return a}
+async function enablePush(){
+  const el=$('#push-url'),url=((el&&el.value)||PUSH.url||'').trim().replace(/\/+$/,'');
+  if(!/^https:\/\/[^\s]+$/.test(url)){toast('先貼上小幫手的網址（https:// 開頭）');return}
+  if(!('serviceWorker' in navigator)||!('PushManager' in window)||typeof Notification==='undefined'){toast(isIOS&&!isStandalone()?'要先把 SynDay 加到主畫面，再從主畫面的圖示打開，才能開通知':'這個瀏覽器不支援通知');return}
+  let perm;try{perm=await Notification.requestPermission()}catch(e){perm='denied'}
+  if(perm!=='granted'){toast('沒有允許通知。可以到手機的「設定」→「通知」→ SynDay 打開');return}
+  busy.push=true;render();
+  try{const reg=await navigator.serviceWorker.register('sw.js');await navigator.serviceWorker.ready;
+    const r=await fetch(url+'/vapid');if(!r.ok)throw'vapid';const vk=(await r.json()).key;if(!vk)throw'vapid';
+    let sub=await reg.pushManager.getSubscription();
+    if(sub&&PUSH.key&&PUSH.key!==vk){try{await sub.unsubscribe()}catch(e){}sub=null}
+    if(!sub)sub=await reg.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:b64uToBytes(vk)});
+    PUSH={url,on:true,sub:sub.toJSON(),key:vk};savePush();lastSync='';delete drafts['push-url'];
+    await syncPush(true);delete busy.push;render();toast('通知開好了！可以按「傳一則測試通知」試試');planPush();
+  }catch(e){delete busy.push;render();toast(e==='vapid'?'連不上小幫手，檢查一下網址有沒有貼對':'開通知失敗，再試一次')}
+}
+async function disablePush(){
+  try{const reg=await navigator.serviceWorker.getRegistration();const sub=reg&&await reg.pushManager.getSubscription();if(sub){if(PUSH.url)fetch(PUSH.url+'/cancel',{method:'POST',headers:{'Content-Type':'text/plain'},body:JSON.stringify({endpoint:sub.endpoint})}).catch(()=>{});await sub.unsubscribe()}}catch(e){}
+  PUSH.on=false;PUSH.sub=null;savePush();S.pushq=[];save();render();toast('已關閉通知')
+}
+async function testPush(){
+  if(!pushOn()){toast('先開啟通知');return}
+  try{const r=await fetch(PUSH.url+'/test',{method:'POST',headers:{'Content-Type':'text/plain'},body:JSON.stringify({sub:PUSH.sub})});const j=await r.json();
+    toast(j.ok?'已送出，幾秒內會收到（App 開著時也會跳）':'送不出去，試試關掉通知再重新開啟')}catch(e){toast('連不上小幫手')}
 }
 async function replyGroup(cv){
   const c=S.convs[cv],mem=c.members.filter(id=>S.chars[id]);if(!mem.length||busy[cv])return;
@@ -522,7 +601,7 @@ function vAI(){
   const sel=AI.model||DEF_LITE,fixed=[[DEF_LITE,'Flash-Lite 最新版（推薦・每天約 500 次）'],[DEF_FLASH,'Flash 最新版（比較聰明・每天約 20 次）']];
   h+=`<div class="form" style="padding:0"><label>${ok?'更換金鑰':'Gemini 金鑰'}<input type="password" id="ai-key" placeholder="貼上 AIza 開頭的金鑰" value="${esc(drafts['ai-key']??'')}" autocomplete="off" spellcheck="false"></label>
   <div class="btns"><button class="btn" data-act="aiSave" ${busy.ai?'disabled':''}>${busy.ai?'連線中…':ok?'更換並測試':'連線並儲存'}</button>${ok?'<button class="btn ghost" data-act="aiRemove">移除金鑰</button>':''}</div>
-  ${ok?`<label>角色用的模型 <em>Flash-Lite 反應快、免費次數多；Flash 演得比較細膩，但免費版一天只有約 20 次。</em><select id="ai-model">${fixed.map(([v,l])=>`<option value="${v}" ${sel===v?'selected':''}>${l}</option>`).join('')}${models&&models.length?`<optgroup label="其他模型">${models.map(m=>`<option value="${esc(m.id)}" ${sel===m.id?'selected':''}>${esc(m.label)}</option>`).join('')}</optgroup>`:''}</select></label>`:''}</div>
+  ${ok?`<label>角色用的模型 <em>Flash-Lite 反應快、免費次數多；Flash 演得比較細膩，但免費版一天只有約 20 次。</em><select id="ai-model">${fixed.map(([v,l])=>`<option value="${v}" ${sel===v?'selected':''}>${l}</option>`).join('')}${models&&models.length?`<optgroup label="進階（多數要付費，選錯可能無法使用或被收費）">${models.filter(m=>!/(transcribe|banana|image|tts|embed|audio|live|robotics|computer|vision|veo|imagen|lyria)/i.test(m.id+m.label)).map(m=>`<option value="${esc(m.id)}" ${sel===m.id?'selected':''}>${esc(m.label)}</option>`).join('')}</optgroup>`:''}</select></label>`:''}</div>
   <p class="note">金鑰只存在這支手機的瀏覽器裡，不會傳給任何人。免費版的對話內容可能會被 Google 用來改進產品。</p></div>`;
   return h;
 }
@@ -571,7 +650,14 @@ function vCycle(){
 function vMe(){
   let h=head('我')+`<div class="sec"><h2>我的大頭貼和名字</h2><div class="form" style="padding:0"><div class="avedit">${av('me','l')}<div style="display:flex;flex-direction:column;gap:8px"><label class="btn ghost sm" style="display:inline-flex;flex-direction:row;align-items:center;cursor:pointer;font-size:14px">${S.profile.img?'換一張照片':'上傳照片'}<input type="file" id="me-file" accept="image/*" hidden></label>${S.profile.img?'<button class="btn ghost sm" data-act="rmMeImg">移除照片</button>':''}</div></div><label>角色們會這樣叫你<input type="text" id="me-name" value="${esc(drafts['me-name']??S.profile.me??'')}" maxlength="20" placeholder="例如：小花"></label></div></div>`+vAI();
   const fq=S.profile.pro||'some';
-  h+=`<div class="sec"><h2>角色主動傳訊息</h2><div class="form" style="padding:0"><label>多久找你一次<select id="pro-freq">${[['off','關閉'],['rare','偶爾（約 8 小時）'],['some','有時候（約 4 小時）'],['often','常常（約 1.5 小時）'],['clingy','很黏人（約 30 分鐘）']].map(([v,l])=>`<option value="${v}" ${fq===v?'selected':''}>${l}</option>`).join('')}</select></label></div><p class="note">你打開 SynDay 的時候，好一陣子沒聊天的角色會傳訊息給你；頁面開著時也會不定時收到。關掉頁面期間不會發送通知。每個角色可以在「角色」裡個別關掉。</p></div>`;
+  h+=`<div class="sec"><h2>角色主動傳訊息</h2><div class="form" style="padding:0"><label>多久找你一次<select id="pro-freq">${[['off','關閉'],['rare','偶爾（約 8 小時）'],['some','有時候（約 4 小時）'],['often','常常（約 1.5 小時）'],['clingy','很黏人（約 30 分鐘）']].map(([v,l])=>`<option value="${v}" ${fq===v?'selected':''}>${l}</option>`).join('')}</select></label></div><p class="note">你打開 SynDay 的時候，好一陣子沒聊天的角色會傳訊息給你；頁面開著時也會不定時收到。${pushOn()?'手機通知已開啟，關掉 SynDay 時也會收到。':'想在關掉 SynDay 時也收到，可以在下面開啟手機通知。'}每個角色可以在「角色」裡個別關掉。</p></div>`;
+  {const q=quietCfg(),hrs=Array.from({length:24},(_,i)=>i),on=pushOn(),cnt=(S.pushq||[]).filter(x=>x.at>Date.now()).length;
+  h+=`<div class="sec"><h2>手機通知</h2>`;
+  if(on)h+=`<div class="aiok"><b>通知已開啟</b><span>${cnt?`已排好 ${cnt} 則`:'正在安排…'}</span></div><div class="btns" style="margin-bottom:14px"><button class="btn ghost" data-act="pushTest">傳一則測試通知</button><button class="btn ghost" data-act="pushOff">關閉通知</button></div>`;
+  else if(isIOS&&!isStandalone())h+=`<p class="note" style="margin:0 0 12px">iPhone 要先把 SynDay 加到主畫面（Safari 的分享 →「加入主畫面」），再從主畫面的圖示打開，才能開通知。</p>`;
+  if(!on)h+=`<div class="form" style="padding:0"><label>小幫手網址 <em>從 Cloudflare 複製過來的網址，像 https://synday-push.xxx.workers.dev</em><input type="text" id="push-url" value="${esc(drafts['push-url']??PUSH.url??'')}" placeholder="https://" autocomplete="off" spellcheck="false" inputmode="url"></label><div class="btns"><button class="btn" data-act="pushOn" ${busy.push?'disabled':''}>${busy.push?'設定中…':'開啟通知'}</button></div></div>`;
+  h+=`<div class="form" style="padding:0;margin-top:16px"><label class="chk"><input type="checkbox" id="q-on" ${q.on?'checked':''}>勿擾時段（這段時間角色不會傳訊息）</label>${q.on?`<div class="btns" style="align-items:center"><select id="q-from" style="width:auto">${hrs.map(x=>`<option value="${x}" ${q.from===x?'selected':''}>${x}:00</option>`).join('')}</select><span>到</span><select id="q-to" style="width:auto">${hrs.map(x=>`<option value="${x}" ${q.to===x?'selected':''}>${x}:00</option>`).join('')}</select></div>`:''}</div>
+  <p class="note">角色會照上面的頻率，在隨機的時間傳訊息，關掉 SynDay 時也會跳通知。為了保護隱私，訊息是你打開 SynDay 時先寫好的，小幫手只會拿到「幾點通知」和「通知那一句話」，金鑰和聊天紀錄都不會離開這支手機。</p></div>`;}
   h+=`<div>`;
   h+=`</div><div class="sec" style="border:0"><h2>備份</h2><p class="note" style="margin:0 0 14px">角色、聊天和紀錄都只存在這支手機的瀏覽器裡。換手機或清除瀏覽器資料之前，記得先匯出備份。</p>`;
   if(impData)h+=`<div class="aiok" style="flex-wrap:wrap"><span style="color:var(--ink);white-space:normal">這份備份有 ${Object.keys(impData.chars||{}).length} 個角色、${Object.keys(impData.posts||{}).length} 篇貼文。匯入會取代目前的資料。</span><div class="btns"><button class="btn sm warn" data-act="impOk">確認匯入</button><button class="btn sm ghost" data-act="impNo">取消</button></div></div>`;
@@ -600,6 +686,8 @@ function go(sub,tab){V.pick=null;V.sub=sub;if(tab)V.tab=tab;delArm=null;render.j
 function sendMsg(){
   const id=V.sub.id,k='in-'+id,el=document.getElementById(k),t=(el?.value||'').trim();if(!t)return;
   push(id,'me',t);drafts[k]='';save('convs',id);render();window.scrollTo(0,document.body.scrollHeight);
+  lastAct=Date.now();
+  const cvo=S.convs[id];if(cvo&&cvo.type==='dm'&&S.pushq&&S.pushq.some(x=>x.cid===cvo.members[0])){S.pushq=S.pushq.filter(x=>x.cid!==cvo.members[0]);save();syncPush()}
   schedReply(id);
 }
 function schedReply(id,ms=1600){clearTimeout(timers[id]);timers[id]=setTimeout(()=>{delete timers[id];S.convs[id]?.type==='group'?replyGroup(id):replyDM(id)},ms)}
@@ -646,6 +734,7 @@ const act={
     const id=nid();S.posts[id]={a:'me',t,imgs,ts:Date.now(),liked:false,lk:[],cm:[]};drafts['in-post']='';
     postFiles.forEach(f=>URL.revokeObjectURL(f.url));postFiles=[];save('posts',id);prunePosts();render();genComments(id)},
   clrRef:()=>{drafts['c-ref']='';render()},
+  pushOn:()=>enablePush(),pushOff:()=>disablePush(),pushTest:()=>testPush(),
   rmMeImg:()=>{S.profile.img='';save('profile','p');render()},
   pickMsg:i=>{const cv=V.sub&&V.sub.id;if(!cv)return;V.pick=(V.pick&&V.pick.cv===cv&&V.pick.i===+i)?null:{cv,i:+i};render()},
   pickNo:()=>{V.pick=null;render()},
@@ -707,9 +796,12 @@ app.addEventListener('change',e=>{const t=e.target;
     (async()=>{for(const f of fs){try{const u=await shrink(f,1280,180000);push(id,'me','',u);save('convs',id);render();window.scrollTo(0,document.body.scrollHeight)}catch(e){toast('有照片讀不出來，換一張試試')}}schedReply(id,2200)})()}
   if(t.id==='me-file'&&t.files[0]){const f=t.files[0];t.value='';const fr=new FileReader();fr.onload=()=>{const im=new Image();im.onload=()=>{const cv=document.createElement('canvas');cv.width=cv.height=200;const x=cv.getContext('2d'),q=Math.min(im.width,im.height);x.drawImage(im,(im.width-q)/2,(im.height-q)/2,q,q,0,0,200,200);S.profile.img=cv.toDataURL('image/jpeg',.85);save('profile','p');render();toast('大頭貼換好了')};im.onerror=()=>toast('這張圖片讀不出來');im.src=fr.result};fr.readAsDataURL(f)}
   if(t.id==='d-note'){const d=V.selDay||today(),L=dlog()[d]||(dlog()[d]={});L.note=t.value.trim();delete drafts['d-note'];tidy(d);save()}
-  if(t.id==='ai-model'){AI.model=t.value;saveAI();noAIUntil=0;toast('已換模型')}
+  if(t.id==='q-on'||t.id==='q-from'||t.id==='q-to'){const q=quietCfg();if(t.id==='q-on')q.on=t.checked;else q[t.id==='q-from'?'from':'to']=+t.value;S.profile.quiet=q;
+    if(S.pushq){const now=Date.now();S.pushq=S.pushq.filter(x=>x.at<=now||!inQuiet(x.at))}save();render();syncPush();planPush()}
+  if(t.id==='pro-freq'&&S.pushq){S.pushq=S.pushq.filter(x=>x.at<=Date.now())}
+  if(t.id==='ai-model'){AI.model=t.value;saveAI();noAIUntil=0;toast(t.value===DEF_LITE||t.value===DEF_FLASH?'已換模型':'注意：這個模型可能要付費。角色沒回話或被收費的話，請換回 Flash-Lite')}
   if(t.id==='imp'&&t.files[0]){t.files[0].text().then(x=>{const d=JSON.parse(x);if(!d||typeof d!=='object'||!d.chars)throw 0;impData=d;render()}).catch(()=>toast('這不是 SynDay 的備份檔'));t.value=''}
-  if(t.id==='pro-freq'){S.profile.pro=t.value;save('profile','p');toast(t.value==='off'?'角色不會主動傳訊息了':'已設定');proCheck()}
+  if(t.id==='pro-freq'){S.profile.pro=t.value;save('profile','p');toast(t.value==='off'?'角色不會主動傳訊息了':'已設定');proCheck();syncPush();planPush()}
   if(t.id==='post-file'&&t.files.length){const room=4-postFiles.length;const fs=[...t.files].filter(f=>f.type.startsWith('image/')).slice(0,Math.max(0,room));
     if(t.files.length>room)toast('一篇最多 4 張照片');fs.forEach(f=>postFiles.push({file:f,url:URL.createObjectURL(f)}));render()}
   if(t.id==='c-file'&&t.files[0]){const fr=new FileReader();fr.onload=()=>{const im=new Image();im.onload=()=>{const cv=document.createElement('canvas');cv.width=cv.height=160;const x=cv.getContext('2d'),s=Math.min(im.width,im.height);x.drawImage(im,(im.width-s)/2,(im.height-s)/2,s,s,0,0,160,160);formImg=cv.toDataURL('image/jpeg',.85);render()};im.onerror=()=>toast('這張圖片讀不出來');im.src=fr.result};fr.readAsDataURL(t.files[0])}});
