@@ -394,7 +394,7 @@ async function ask(prompt,imgs,quiet){
   const parts=[{text:prompt}];
   (imgs||[]).forEach(u=>{const i=u.indexOf(',');parts.push({inline_data:{mime_type:u.slice(5,u.indexOf(';')),data:u.slice(i+1)}})});
   const body={contents:[{role:'user',parts}],generationConfig:{temperature:1},
-    safetySettings:['HARASSMENT','HATE_SPEECH','SEXUALLY_EXPLICIT','DANGEROUS_CONTENT'].map(c=>({category:'HARM_CATEGORY_'+c,threshold:'BLOCK_ONLY_HIGH'}))};
+    safetySettings:['HARASSMENT','HATE_SPEECH','SEXUALLY_EXPLICIT','DANGEROUS_CONTENT'].map(c=>({category:'HARM_CATEGORY_'+c,threshold:'OFF'}))};
   let r;
   try{r=await fetch(GAPI+'models/'+encodeURIComponent(AI.model||DEF_LITE)+':generateContent',{method:'POST',headers:{'Content-Type':'application/json','x-goog-api-key':AI.key},body:JSON.stringify(body)})}
   catch(e){if(!quiet)toast('連不上 Gemini，檢查一下網路');throw e}
@@ -530,11 +530,12 @@ async function testPush(){
   try{const r=await fetch(PUSH.url+'/test',{method:'POST',headers:{'Content-Type':'text/plain'},body:JSON.stringify({sub:PUSH.sub})});const j=await r.json();
     toast(j.ok?'已送出，幾秒內會收到（App 開著時也會跳）':'送不出去，試試關掉通知再重新開啟')}catch(e){toast('連不上小幫手')}
 }
+function nowClock(ts){const d=new Date(ts||Date.now());return`現在是${d.getMonth()+1}月${d.getDate()}日 星期${WD[d.getDay()]} ${pad(d.getHours())}:${pad(d.getMinutes())}（${meName()}那邊的時間）。說話內容要符合現在的時間點，例如深夜、早上、上班時間。`}
 async function replyGroup(cv){
   const c=S.convs[cv],mem=c.members.filter(id=>S.chars[id]);if(!mem.length||busy[cv])return;
   busy[cv]=mem;render();
   const names=mem.map(chName),pim=pendImgs(c);
-  const prompt=`你要同時扮演群組聊天室「${convTitle(c)}」裡的幾個角色，和「${meName()}」一起在類似 LINE 的群組裡聊天。\n\n${mem.map(id=>persona(S.chars[id])).join('\n\n')}${relBlock(mem)}\n\n最近的對話：\n${hist(c,30)}${imgNote(pim.length)}\n\n接下來讓最自然會開口的角色回應，共 1 到 4 則訊息，可以是不同角色，角色之間也可以互相接話、吐槽、爭執。${MULTI()}\n每則一行，格式「角色名：內容」。角色名只能是：${names.join('、')}。${RULE()}${stkHint(S.chars[mem[Math.floor(Math.random()*mem.length)]]).replace('那一行只寫【貼圖：名稱】','那一行寫「角色名：【貼圖：名稱】」')}`;
+  const prompt=`你要同時扮演群組聊天室「${convTitle(c)}」裡的幾個角色，和「${meName()}」一起在類似 LINE 的群組裡聊天。\n\n${mem.map(id=>persona(S.chars[id])).join('\n\n')}${relBlock(mem)}\n\n${nowClock()}\n\n最近的對話：\n${hist(c,30)}${imgNote(pim.length)}\n\n接下來讓最自然會開口的角色回應，共 1 到 4 則訊息，可以是不同角色，角色之間也可以互相接話、吐槽、爭執。${MULTI()}\n每則一行，格式「角色名：內容」。角色名只能是：${names.join('、')}。${RULE()}${stkHint(S.chars[mem[Math.floor(Math.random()*mem.length)]]).replace('那一行只寫【貼圖：名稱】','那一行寫「角色名：【貼圖：名稱】」')}`;
   try{const t=await ask(prompt,pim);const ls=lines(t,names).filter(l=>l.who).slice(0,5);
     for(const l of ls){busy[cv]=[mem[names.indexOf(l.who)]];render();await sleep(Math.min(1500,450+l.t.length*25));{const k=stkLine(l.t);if(k)pushStk(cv,mem[names.indexOf(l.who)],k.id);else if(!/貼圖[:：]/.test(l.t))push(cv,mem[names.indexOf(l.who)],l.t)}render()}
     save('convs',cv)}catch(e){}
@@ -609,7 +610,7 @@ async function genComments(pid,mode){
   else task=`讓角色們繼續聊這則貼文，可以回覆之前的留言，也可以互相接話。共 2 到 4 則。`;
   const imgs=(p.imgs||[]).filter(u=>IMG.test(u));
   const photo=imgs.length?`\n（這則貼文附了 ${imgs.length} 張照片，請針對照片的內容自然地反應）`:'';
-  const prompt=`你要同時扮演社群平台（類似 Threads）上的幾個角色，在一則貼文底下留言。\n\n${cast.map(id=>persona(S.chars[id])).join('\n\n')}${relBlock(cast)}\n\n貼文（${chName(p.a)} 發的）：\n${p.t||'（沒有文字）'}${photo}\n\n目前的留言串（「A→B」代表 A 回覆 B）：\n${thread}\n\n${task}\n留言要短，像真的在社群留言。${MULTI()}\n每則一行，格式「角色名：內容」；如果是在回覆某人，用「角色名→被回覆的人：內容」。留言的角色只能是：${names.join('、')}。被回覆的人可以是這些角色或「${me}」。${RULE()}`;
+  const prompt=`你要同時扮演社群平台（類似 Threads）上的幾個角色，在一則貼文底下留言。\n\n${cast.map(id=>persona(S.chars[id])).join('\n\n')}${relBlock(cast)}\n\n貼文（${chName(p.a)} 發的，${ago(p.ts)==='剛剛'?'剛剛':ago(p.ts)+'前'}）：\n${p.t||'（沒有文字）'}${photo}\n\n${nowClock()}\n\n目前的留言串（「A→B」代表 A 回覆 B）：\n${thread}\n\n${task}\n留言要短，像真的在社群留言。${MULTI()}\n每則一行，格式「角色名：內容」；如果是在回覆某人，用「角色名→被回覆的人：內容」。留言的角色只能是：${names.join('、')}。被回覆的人可以是這些角色或「${me}」。${RULE()}`;
   try{const t=await ask(prompt,imgs);
     const out=[];for(const raw of t.split('\n')){const s1=raw.trim().replace(/^[-*・\s]+/,'');if(!s1)continue;
       const m=s1.match(/^(.{1,20}?)\s*(?:→|->|>|＞)\s*(.{1,20}?)\s*[:：]\s*(.+)$/)||s1.match(/^(.{1,20}?)()\s*[:：]\s*(.+)$/);if(!m)continue;
