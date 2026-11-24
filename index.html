@@ -244,6 +244,7 @@ const isStandalone=()=>{try{return matchMedia('(display-mode: standalone)').matc
 const isIOS=/iP(hone|ad|od)/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
 const KEYS='jiaoseq-ai'+sfx(SLOT),GAPI='https://generativelanguage.googleapis.com/v1beta/',DEF_LITE='gemini-flash-lite-latest',DEF_FLASH='gemini-flash-latest';
 let AI={key:'',model:''};try{AI=Object.assign(AI,JSON.parse(localStorage.getItem(KEYS)||'{}'))}catch(e){}
+const aiReady=()=>AI.prov==='custom'?!!(AI.cBase&&AI.cModel):!!AI.key;
 const saveAI=()=>{try{localStorage.setItem(KEYS,JSON.stringify(AI))}catch(e){}};
 let models=null,modelsLoading=false,noAIUntil=0,impData=null;
 const V={tab:'chats',sub:null,perEdit:false};
@@ -342,7 +343,7 @@ function byList(){const p=S.profile.period;if(!p)return[];const a=Array.isArray(
 function careDueFor(cid){const p=S.profile.period,st=per();if(!p||!st||st.kind==='normal'||!byList().includes(cid))return false;const r=p.rem||{};if(!Array.isArray(p.by)&&p.lastRemind===today()&&p.by===cid)return false;return r[cid]!==today()}
 function careDue(){return byList().some(careDueFor)}
 let careBusy=false;
-async function careRun(){if(careBusy||!AI.key||Date.now()<noAIUntil)return;const due=byList().filter(id=>careDueFor(id)&&!busy['dm_'+id]);if(!due.length)return;careBusy=true;
+async function careRun(){if(careBusy||!aiReady()||Date.now()<noAIUntil)return;const due=byList().filter(id=>careDueFor(id)&&!busy['dm_'+id]);if(!due.length)return;careBusy=true;
   try{for(let i=0;i<due.length;i++){if(i)await sleep(15e3+Math.random()*30e3);const id=due[i];if(!careDueFor(id))continue;ensureDM(id);await replyDM('dm_'+id,'care')}}finally{careBusy=false}}
 
 /* ---------- AI ---------- */
@@ -389,7 +390,28 @@ async function loadModels(key){
   return(j.models||[]).filter(m=>(m.supportedGenerationMethods||[]).includes('generateContent')&&/gemini/i.test(m.name)&&!/(tts|image|embed|audio|live|robotics|computer|vision)/i.test(m.name))
     .map(m=>({id:m.name.replace(/^models\//,''),label:m.displayName||m.name})).sort((x,y)=>(/lite/i.test(y.id)-/lite/i.test(x.id))||x.id.localeCompare(y.id));
 }
+async function askCustom(prompt,imgs,quiet){
+  let url=(AI.cBase||'').trim().replace(/\/+$/,'');if(!/\/chat\/completions$/.test(url))url+='/chat/completions';
+  const content=(imgs&&imgs.length)?[{type:'text',text:prompt},...imgs.map(u=>({type:'image_url',image_url:{url:u}}))]:prompt;
+  const headers={'Content-Type':'application/json'};if(AI.cKey)headers.Authorization='Bearer '+AI.cKey.trim();
+  let r;
+  try{r=await fetch(url,{method:'POST',headers,body:JSON.stringify({model:AI.cModel.trim(),messages:[{role:'user',content}],temperature:1})})}
+  catch(e){if(!quiet)toast('連不上自訂 API：可能是網址打錯，或這家不允許從網頁直接連線');throw 'net'}
+  if(!r.ok){const st=r.status;
+    if(st===429){noAIUntil=Date.now()+10*60e3;if(!quiet)toast('自訂 API 的額度暫時用完了，或請求太頻繁')}
+    else if(st===401||st===403){if(!quiet)toast('自訂 API 的金鑰不對，或沒有權限')}
+    else if(st===404){if(!quiet)toast('找不到：檢查 API 地址或模型名稱')}
+    else if(st===402){if(!quiet)toast('自訂 API 的餘額不足')}
+    else if(!quiet)toast('自訂 API 暫時沒回應（錯誤 '+st+'）');
+    throw st}
+  let j;try{j=await r.json()}catch(e){if(!quiet)toast('自訂 API 回傳的格式看不懂，確認是 OpenAI 相容格式');throw 0}
+  const m=j.choices&&j.choices[0]&&j.choices[0].message;let t=m?(Array.isArray(m.content)?m.content.map(p=>p.text||'').join(''):(m.content||'')):'';
+  t=t.replace(/<think>[\s\S]*?<\/think>/g,'').trim();
+  if(!t){if(!quiet)toast('角色沒有回話，再試一次');throw 0}
+  return t;
+}
 async function ask(prompt,imgs,quiet){
+  if(AI.prov==='custom'){if(!AI.cBase||!AI.cModel){if(!quiet)toast('自訂 API 還沒填完整，到「我」檢查一下');throw 0}return askCustom(prompt,imgs,quiet)}
   if(!AI.key){if(!quiet)toast('先到「我」貼上免費的 Gemini 金鑰，角色才會回話');throw 0}
   const parts=[{text:prompt}];
   (imgs||[]).forEach(u=>{const i=u.indexOf(',');parts.push({inline_data:{mime_type:u.slice(5,u.indexOf(';')),data:u.slice(i+1)}})});
@@ -450,7 +472,7 @@ async function replyDM(cv,mode){
   delete busy[cv];render();
 }
 async function proCheck(){
-  if(proBusy||!AI.key||Date.now()<noAIUntil||pushOn())return;const h=FREQ[S.profile.pro||'some'];if(!h)return;
+  if(proBusy||!aiReady()||Date.now()<noAIUntil||pushOn())return;const h=FREQ[S.profile.pro||'some'];if(!h)return;
   const now=Date.now(),gap=h*36e5*(0.8+Math.random()*0.4);
   const cand=Object.keys(S.chars).filter(id=>{const ch=S.chars[id];if(ch.pro===false)return false;const cv=S.convs['dm_'+id];if(!cv||busy['dm_'+id]||timers['dm_'+id])return false;
     const last=cv.msgs.length?cv.msgs[cv.msgs.length-1].ts:(ch.created||cv.ts);return now-last>gap&&now-(ch.lastPro||0)>gap});
@@ -469,7 +491,7 @@ async function genPro(cid,at){
   const t=await ask(prompt,null,true);return lines(t,[ch.name]).map(l=>l.t).filter(Boolean).slice(0,nP);
 }
 async function planPush(){
-  if(!pushOn()||!AI.key||planBusy||Date.now()<noAIUntil)return;
+  if(!pushOn()||!aiReady()||planBusy||Date.now()<noAIUntil)return;
   const h=FREQ[S.profile.pro||'some'];if(!h)return;
   if(Date.now()-lastAct<3*60e3)return;
   const q=S.pushq||(S.pushq=[]),now=Date.now();
@@ -554,13 +576,13 @@ async function genPost(forcedCid,at){
 }
 /* ---------- 角色自己發文：各自的頻率、排隊不撞時間 ---------- */
 const PFREQ={off:0,rare:48,day:24,often:8,lots:3};
-const PFREQ_LABEL=[['off','不發文'],['rare','很少（約 2 天一篇）'],['day','偶爾（約 1 天一篇）'],['often','常常（約 8 小時一篇）'],['lots','很愛發（約 3 小時一篇）']];
+const PFREQ_LABEL=[['auto','✨ 依人設決定'],['off','不發文'],['rare','很少（約 2 天一篇）'],['day','偶爾（約 1 天一篇）'],['often','常常（約 8 小時一篇）'],['lots','很愛發（約 3 小時一篇）']];
 let autoBusy=false;
 const nextGap=h=>h*36e5*(0.6+Math.random()*0.8);
 async function autoPost(){
-  if(autoBusy||busy.feed||!AI.key||Date.now()<noAIUntil)return;
+  if(autoBusy||busy.feed||!aiReady()||Date.now()<noAIUntil)return;
   const now=Date.now(),ids=Object.keys(S.chars);let changed=false;
-  for(const id of ids){const c=S.chars[id],h=PFREQ[c.postFreq||'day'];if(!h){if(c.nextPostAt){delete c.nextPostAt;changed=true}continue}
+  for(const id of ids){const c=S.chars[id];if(c.postFreq==='auto'&&!c.autoPF){inferAuto(id);continue}const h=PFREQ[pfOf(c)];if(!h){if(c.nextPostAt){delete c.nextPostAt;changed=true}continue}
     if(!c.nextPostAt){c.nextPostAt=skipQuiet(now+nextGap(h)*Math.random());changed=true}}
   if(changed)save();
   const due=ids.filter(id=>S.chars[id].nextPostAt&&S.chars[id].nextPostAt<=now).sort((a,b)=>S.chars[a].nextPostAt-S.chars[b].nextPostAt);
@@ -569,7 +591,7 @@ async function autoPost(){
   try{
     const used=Object.values(S.posts).map(p=>p.ts);
     for(const id of due.slice(0,2)){
-      const c=S.chars[id],h=PFREQ[c.postFreq||'day'];
+      const c=S.chars[id],h=PFREQ[pfOf(c)];
       let ts=Math.max(c.nextPostAt,now-24*36e5);
       for(let i=0;i<20&&used.some(u=>Math.abs(u-ts)<20*60e3);i++)ts+=20*60e3+Math.random()*25*60e3;
       if(ts>now)ts=now-Math.random()*5*60e3;
@@ -583,8 +605,23 @@ async function autoPost(){
 }
 /* ---------- 留言速度：有的秒回，有的很久才回 ---------- */
 const CSPEED={fast:[0.05,1],mid:[2,25],slow:[30,180],vslow:[180,720]};
-const CSPEED_LABEL=[['fast','秒回（1 分鐘內）'],['mid','一下子（幾分鐘）'],['slow','慢慢來（半小時～3 小時）'],['vslow','很久才看到（3～12 小時）']];
-function cDelay(cid,mode){const r=CSPEED[(S.chars[cid]&&S.chars[cid].cSpeed)||'mid']||CSPEED.mid;let m=r[0]+Math.random()*(r[1]-r[0]);if(mode==='more')m=Math.min(m,2);return m*60e3}
+const CSPEED_LABEL=[['auto','✨ 依人設決定'],['fast','秒回（1 分鐘內）'],['mid','一下子（幾分鐘）'],['slow','慢慢來（半小時～3 小時）'],['vslow','很久才看到（3～12 小時）']];
+const pfOf=c=>{const v=c.postFreq||'day';return v==='auto'?(c.autoPF||'day'):v};
+const csOf=c=>{const v=(c&&c.cSpeed)||'mid';return v==='auto'?(c.autoCS||'mid'):v};
+const autoSig=c=>{const t=(c.name||'')+'|'+(c.persona||'').slice(0,4000);let h=0;for(let i=0;i<t.length;i++)h=(h*31+t.charCodeAt(i))|0;return String(h)};
+const autoBusyC={};
+function autoNote(c,k){if(!c||(k==='pf'?c.postFreq:c.cSpeed)!=='auto')return'';const v=k==='pf'?c.autoPF:c.autoCS,L=(k==='pf'?PFREQ_LABEL:CSPEED_LABEL).find(x=>x[0]===v);
+  return`<em style="margin-top:6px">${c.autoSig&&c.autoSig===autoSig(c)&&L?`讀完人設，目前判斷是：<b>${L[1]}</b>`:'儲存後會讀人設來判斷（改了人設會重新判斷）'}</em>`}
+async function inferAuto(cid){const c=S.chars[cid];if(!c||(c.postFreq!=='auto'&&c.cSpeed!=='auto'))return;const sg=autoSig(c);if(c.autoSig===sg||autoBusyC[cid]||!aiReady()||Date.now()<noAIUntil)return;
+  autoBusyC[cid]=1;
+  try{const t=await ask(`根據下面這個角色的人設，判斷他使用社群軟體（像 Threads）的習慣。\n\n${persona(c,true).slice(0,4000)}\n\n只回答兩行，不要解釋：\n發文：rare（很少發）／day（一天一篇左右）／often（一天好幾篇）／lots（超愛發）其中一個\n回覆：fast（秒回）／mid（幾分鐘內）／slow（半小時到幾小時）／vslow（很久才看到）其中一個`,null,true);
+    const pf=(t.match(/發文[:：]\s*(rare|day|often|lots)/i)||[])[1],cs=(t.match(/回覆[:：]\s*(fast|mid|slow|vslow)/i)||[])[1];
+    const cc=S.chars[cid];if(!cc)return;
+    if(pf&&cc.autoPF!==pf.toLowerCase()){cc.autoPF=pf.toLowerCase();delete cc.nextPostAt}
+    if(cs)cc.autoCS=cs.toLowerCase();
+    cc.autoSig=sg;save('chars',cid);if(V.sub&&V.sub.k==='char')render()}
+  catch(e){}finally{delete autoBusyC[cid]}}
+function cDelay(cid,mode){const r=CSPEED[csOf(S.chars[cid])]||CSPEED.mid;let m=r[0]+Math.random()*(r[1]-r[0]);if(mode==='more')m=Math.min(m,2);return m*60e3}
 function deliverComments(){
   const now=Date.now();let any=false;
   for(const[pid,p]of Object.entries(S.posts)){if(!p.pend||!p.pend.length)continue;
@@ -634,7 +671,7 @@ function vChats(){
   let h=head(`SynDay<small>${SLOTS.length>1?esc(slotName()):'共時'}</small>`,hasC?`<button class="icon" data-act="newGroup" aria-label="建立群組">${ic('group')}</button>`:'');
   if(!hasC)return h+empty('還沒有角色','先建立一個角色，他就會出現在你的聊天列表，也會開始在動態發文。','<button class="btn" data-act="newChar">建立第一個角色</button>');
   const careSet=new Set(byList().filter(careDueFor).map(x=>'dm_'+x));const care=null;
-  if(!AI.key)h+=`<div class="banner"><span>角色還不能說話：先貼上免費的 Gemini 金鑰。</span><button class="btn sm" data-act="tab" data-id="me">去設定</button></div>`;
+  if(!aiReady())h+=`<div class="banner"><span>角色還不能說話：先貼上免費的 Gemini 金鑰。</span><button class="btn sm" data-act="tab" data-id="me">去設定</button></div>`;
   const list=Object.entries(S.convs).filter(([,c])=>c.members.some(m=>S.chars[m])).sort((a,b)=>(careSet.has(b[0]))-(careSet.has(a[0]))||b[1].ts-a[1].ts);
   return h+list.map(([id,c])=>{const last=c.msgs[c.msgs.length-1];
     const pic=c.type==='dm'?av(c.members[0]):`<div class="stackav">${av(c.members[0])}${av(c.members[1]||c.members[0])}</div>`;
@@ -713,10 +750,10 @@ function vCharEdit(id){
   <label>參考對話 <em>選填。上傳你跟這個角色以前的聊天紀錄（例如 LINE 匯出的 .txt），他會學著用一樣的語氣跟你說話。太長的話會保留最新的部分。</em><textarea id="c-ref" maxlength="${RMAX}" style="min-height:140px" placeholder="可以貼上對話，或用下面的按鈕上傳檔案">${esc(rf)}</textarea></label>
   <div class="btns" style="align-items:center;margin-top:-8px"><label class="btn ghost sm" style="display:inline-flex;flex-direction:row;align-items:center;cursor:pointer;font-size:14px">上傳對話檔案<input type="file" id="c-rfile" accept=".txt,.md,.docx,.json,.csv,text/*" hidden></label>${rf?'<button class="btn ghost sm" data-act="clrRef">清除</button>':''}<span class="note" style="margin:0" id="c-rcount">${cnt(rf,RMAX)}</span></div>
   <label class="chk"><input type="checkbox" id="c-pro" ${(drafts['c-pro']??(c.pro!==false))?'checked':''}>會主動傳訊息給我</label>
-  <label>自己發文的頻率 <em>每個角色可以不一樣。好幾個角色同時想發文時會排隊，不會擠在一起。</em><select id="c-pf">${PFREQ_LABEL.map(([v,l])=>`<option value="${v}" ${(drafts['c-pf']??(c.postFreq||'day'))===v?'selected':''}>${l}</option>`).join('')}</select></label>
+  <label>自己發文的頻率 <em>每個角色可以不一樣。好幾個角色同時想發文時會排隊，不會擠在一起。</em><select id="c-pf">${PFREQ_LABEL.map(([v,l])=>`<option value="${v}" ${(drafts['c-pf']??(c.postFreq||'day'))===v?'selected':''}>${l}</option>`).join('')}</select>${autoNote(c,'pf')}</label>
   <label>性別 <em>讓其他角色稱呼他時不會叫錯「他／她」「你／妳」。</em><select id="c-gen">${[['','從人設判斷'],['m','男'],['f','女'],['x','其他／不指定']].map(([v,l])=>`<option value="${v}" ${(drafts['c-gen']??(c.gender||''))===v?'selected':''}>${l}</option>`).join('')}</select></label>
   <label>表情符號 <em>他傳訊息、發文、留言時用不用 emoji 或顏文字。</em><select id="c-emo">${EMO_LABEL.map(([v,l])=>`<option value="${v}" ${(drafts['c-emo']??(c.emoji||'auto'))===v?'selected':''}>${l}</option>`).join('')}</select></label>
-  <label>動態留言的速度 <em>他在動態看到貼文或被回覆時，多久才會留言。</em><select id="c-cs">${CSPEED_LABEL.map(([v,l])=>`<option value="${v}" ${(drafts['c-cs']??(c.cSpeed||'mid'))===v?'selected':''}>${l}</option>`).join('')}</select></label>
+  <label>動態留言的速度 <em>他在動態看到貼文或被回覆時，多久才會留言。</em><select id="c-cs">${CSPEED_LABEL.map(([v,l])=>`<option value="${v}" ${(drafts['c-cs']??(c.cSpeed||'mid'))===v?'selected':''}>${l}</option>`).join('')}</select>${autoNote(c,'cs')}</label>
   <div class="btns"><button class="btn" data-act="saveChar" data-id="${id}">${id==='new'?'建立角色':'儲存'}</button>${id!=='new'?`<button class="btn ghost" data-act="dm" data-id="${id}">傳訊息</button>`:''}</div></div>`;
 }
 function vAI(){
@@ -730,6 +767,15 @@ function vAI(){
   <div class="btns"><button class="btn" data-act="aiSave" ${busy.ai?'disabled':''}>${busy.ai?'連線中…':ok?'更換並測試':'連線並儲存'}</button>${ok?'<button class="btn ghost" data-act="aiRemove">移除金鑰</button>':''}</div>
   ${ok?`<label>角色用的模型 <em>Flash-Lite 反應快、免費次數多；Flash 演得比較細膩，但免費版一天只有約 20 次。</em><span class="mwarn"><b>⚠️ 只有最上面兩個是免費的</b>其他模型可能要付費。如果你的 Google 帳號有綁信用卡，選到付費模型會直接被收費；沒綁卡的話，角色會沒辦法回話。不確定就選第一個。</span><select id="ai-model">${fixed.map(([v,l])=>`<option value="${v}" ${sel===v?'selected':''}>${l}</option>`).join('')}${models&&models.length?`<optgroup label="⚠️ 以下可能要付費（有綁信用卡會被收費）">${models.filter(m=>!/(transcribe|banana|image|tts|embed|audio|live|robotics|computer|vision|veo|imagen|lyria)/i.test(m.id+m.label)).map(m=>`<option value="${esc(m.id)}" ${sel===m.id?'selected':''}>${esc(m.label)}</option>`).join('')}</optgroup>`:''}</select></label>`:''}</div>
   <p class="note">金鑰只存在這支手機的瀏覽器裡，不會傳給任何人。免費版的對話內容可能會被 Google 用來改進產品。</p></div>`;
+  const cu=AI.prov==='custom';
+  h+=`<div class="sec"><h2>使用其他 AI <small style="font-weight:400;color:var(--mut);font-size:13px">進階・選填</small></h2>
+  ${cu?`<div class="aiok"><b>角色現在用的是：自訂 API</b><span>${esc(AI.cModel||'')}</span></div>`:'<p class="note" style="margin-top:0">想用 Gemini 以外的 AI，可以填「OpenAI 相容格式」的 API，例如 OpenRouter、DeepSeek、OpenAI，或你自己的中轉站。</p>'}
+  <div class="form" style="padding:0">
+  <label>API 地址<input type="text" inputmode="url" id="cx-base" placeholder="例如 https://openrouter.ai/api/v1" value="${esc(drafts['cx-base']??AI.cBase??'')}" autocomplete="off" spellcheck="false" autocapitalize="off"></label>
+  <label>金鑰 <em>有些本機或中轉服務不需要，可以留空</em><input type="password" id="cx-key" placeholder="${AI.cKey?'••••'+esc(AI.cKey.slice(-4))+'（不改就留空）':'貼上金鑰'}" value="${esc(drafts['cx-key']??'')}" autocomplete="off" spellcheck="false"></label>
+  <label>模型名稱 <em>照那家服務寫的名稱填，大小寫要一樣</em><input type="text" id="cx-model" placeholder="例如 deepseek-chat" value="${esc(drafts['cx-model']??AI.cModel??'')}" autocomplete="off" spellcheck="false" autocapitalize="off"></label>
+  <div class="btns"><button class="btn" data-act="cxSave" ${busy.cx?'disabled':''}>${busy.cx?'測試中…':'儲存並測試'}</button>${cu?'<button class="btn ghost" data-act="cxOff">改回用 Gemini</button>':''}</div></div>
+  <p class="note">⚠️ 費用要看你用的那一家，很多是<b>付費</b>的，請自己確認價格和餘額。金鑰只存在這支手機；對話內容會送到你填的那家服務。有些服務不允許從網頁直接連線，測試失敗的話可能是這個原因。</p></div>`;
   return h;
 }
 function hcfg(){const h=S.profile.health||(S.profile.health={});if(!h.goal)h.goal=8;if(!h.cup)h.cup=250;if(!Array.isArray(h.items))h.items=[];if(h.nudge===undefined)h.nudge=true;return h}
@@ -902,7 +948,7 @@ const act={
     const next={...old,name,persona,ref,mem,rel,color:formColor||COLORS[0],img:formImg||'',pro:$('#c-pro').checked,postFreq:pf,cSpeed:cs,emoji:emo,gender:gen};
     if(old.postFreq!==pf)delete next.nextPostAt;
     if(new Blob([JSON.stringify(next)]).size>240000){toast('人設和參考對話加起來太長了，刪掉一些再存');return}
-    S.chars[cid]=next;save('chars',cid);ensureDM(cid);
+    S.chars[cid]=next;save('chars',cid);ensureDM(cid);if(pf==='auto'||cs==='auto')setTimeout(()=>inferAuto(cid),300);
     ['c-name','c-persona','c-pro','c-ref','c-mem','c-pf','c-cs','c-emo','c-gen'].forEach(k=>delete drafts[k]);Object.keys(drafts).filter(k=>k.startsWith('c-rel-')).forEach(k=>delete drafts[k]);formImg=undefined;formColor=null;toast(id==='new'?`${name} 加入了 SynDay`:'已儲存');V.tab='chars';go(null);
   },
   charMenu:()=>{const id=V.sub&&V.sub.id;V.charMenu=V.charMenu===id?null:id;render()},
@@ -944,7 +990,7 @@ const act={
     try{if(idb){const tx=idb.transaction('kv','readwrite');tx.objectStore('kv').delete('state'+sfx(id))}}catch(e){}
     try{localStorage.removeItem('jiaoseq-v1'+sfx(id));localStorage.removeItem('jiaoseq-ai'+sfx(id))}catch(e){}
     SLOTS=SLOTS.filter(x=>x.id!==id);lsSet('jiaoseq-slots',SLOTS);render();toast('已刪除這個存檔')},
-  pushTestChar:async()=>{if(!pushOn()){toast('先開啟通知');return}if(!AI.key){toast('先設定 Gemini 金鑰');return}
+  pushTestChar:async()=>{if(!pushOn()){toast('先開啟通知');return}if(!aiReady()){toast('先設定 Gemini 金鑰');return}
     const ids=Object.keys(S.chars);if(!ids.length){toast('先建立一個角色');return}const pool=ids.filter(i=>S.chars[i].pro!==false);const cid=(pool.length?pool:ids)[Math.floor(Math.random()*(pool.length?pool:ids).length)];
     busy.ptc=true;render();const at=Date.now()+60e3;let t=null;try{ensureDM(cid);t=await genPro(cid,at)}catch(e){}
     delete busy.ptc;if(!t||!t.length){render();toast('角色沒寫出訊息，再試一次');return}
@@ -978,9 +1024,17 @@ const act={
   aiSave:async()=>{const el=$('#ai-key'),k=((el&&el.value)||drafts['ai-key']||'').trim();if(!k){toast('先貼上金鑰');return}
     busy.ai=true;render();
     try{models=await loadModels(k)}catch(e){delete busy.ai;render();toast(e===400||e===403?'這把金鑰不能用，確認有沒有完整複製':'連不上 Google，檢查網路後再試');return}
-    AI.key=k;if(!AI.model)AI.model=DEF_LITE;
+    AI.key=k;AI.prov='gemini';if(!AI.model)AI.model=DEF_LITE;
     try{await ask('只回覆 OK',null,true)}catch(e){if(e===404){const m=models.find(x=>/flash-lite/i.test(x.id))||models[0];if(m)AI.model=m.id}}
     saveAI();delete drafts['ai-key'];delete busy.ai;noAIUntil=0;render();toast('連線成功！角色可以開始說話了');proCheck()},
+  cxSave:async()=>{const base=(($('#cx-base')||{}).value||'').trim(),key=(($('#cx-key')||{}).value||'').trim(),model=(($('#cx-model')||{}).value||'').trim();
+    if(!/^https?:\/\//i.test(base)){toast('API 地址要用 https:// 開頭');return}if(!model){toast('填一下模型名稱');return}
+    const prev={prov:AI.prov,cBase:AI.cBase,cKey:AI.cKey,cModel:AI.cModel};
+    AI.prov='custom';AI.cBase=base;AI.cModel=model;if(key)AI.cKey=key;busy.cx=true;render();
+    try{await ask('只回覆 OK',null,false);saveAI();['cx-base','cx-key','cx-model'].forEach(k=>delete drafts[k]);noAIUntil=0;toast('連線成功！角色現在改用自訂 API')}
+    catch(e){Object.assign(AI,prev);if(!AI.prov)delete AI.prov}
+    delete busy.cx;render()},
+  cxOff:()=>{AI.prov='gemini';saveAI();noAIUntil=0;render();toast(AI.key?'已改回 Gemini':'已改回 Gemini，記得貼上 Gemini 金鑰')},
   aiRemove:()=>{AI.key='';models=null;saveAI();render();toast('已移除金鑰')},
   exp:()=>{flush();const blob=new Blob([JSON.stringify({app:'jiaoseq',v:1,at:Date.now(),...S})],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`SynDay備份-${today()}.json`;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},2000);toast('已匯出備份檔')},
   impOk:()=>{const d=impData;impData=null;for(const k of['chars','convs','posts'])S[k]=d[k]&&typeof d[k]==='object'?d[k]:{};S.profile=d.profile&&typeof d.profile==='object'?d.profile:{me:'',period:null};flush();V.tab='chats';go(null);toast('備份已匯入')},
