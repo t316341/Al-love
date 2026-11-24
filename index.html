@@ -137,6 +137,16 @@ textarea:focus,input:focus,select:focus{outline:none;border-color:var(--ink)!imp
 .day .care{margin:10px 0 0}.day .cares{margin-top:14px}
 .day .soon{margin:12px 0 0;border:1px dashed var(--sf2);border-radius:14px;padding:12px 14px;font-size:14px;color:var(--mut)}
 .pick{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(64px + env(safe-area-inset-bottom));width:calc(100% - 24px);max-width:496px;background:var(--bg);border:1px solid var(--sf2);border-radius:18px;padding:14px;z-index:8;box-shadow:0 8px 30px rgba(0,0,0,.12)}
+.anl{display:flex;flex-direction:column;gap:8px;margin-top:14px}.an{display:flex;align-items:center;gap:10px;border:1px solid var(--line);border-radius:14px;padding:10px 12px}.an .t{flex:1;min-width:0}.an b{display:block;font-weight:600;font-size:15px}.an small{color:var(--mut);font-size:13px}
+.dstrip{display:flex;gap:10px;overflow-x:auto;padding-bottom:4px;scrollbar-width:none}.dstrip::-webkit-scrollbar{display:none}
+.dcard{flex:none;width:150px;text-align:left;border:1px solid var(--line);border-radius:16px;padding:12px;background:none;font:inherit;color:inherit;display:grid;grid-template-columns:auto 1fr;column-gap:8px;row-gap:4px;cursor:pointer;position:relative}
+.dcard b{font-size:14px;font-weight:600;align-self:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.dcard small{grid-column:1/-1;color:var(--mut);font-size:12px}.dcard span{grid-column:1/-1;font-size:13px;color:var(--mut);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.dcard.new::after{content:'';position:absolute;top:10px;right:10px;width:8px;height:8px;border-radius:50%;background:var(--acc)}
+.dent{padding:20px;border-bottom:1px solid var(--line)}.dent h3{font-size:14px;font-weight:600;margin:0 0 10px;color:var(--mut)}.dent p{margin:0;white-space:pre-wrap;line-height:1.85;font-size:15px}
+.qbar{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(60px + env(safe-area-inset-bottom));width:100%;max-width:520px;background:var(--sf);border-top:1px solid var(--line);padding:8px 12px 8px 16px;display:flex;align-items:center;gap:10px;z-index:6;font-size:13px}
+.qbar .qx{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--mut)}.qbar .qx b{color:var(--ink);font-weight:600;margin-right:6px}
+.qt{font-size:12.5px;line-height:1.4;padding:6px 10px;margin:0 0 4px;border-left:2px solid var(--acc);background:var(--sf);border-radius:8px;color:var(--mut);max-width:240px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.qt b{color:var(--ink);font-weight:600;margin-right:4px}
+.m.me .qt{align-self:flex-end}
 .pick .q{font-size:13px;color:var(--mut);margin:0 0 10px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 .m .bb{cursor:pointer}.m .bb.on{outline:2px solid var(--ink);outline-offset:2px}
 .pst{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:8px 0 10px}.pst div{background:var(--sf);border-radius:12px;padding:10px 12px}.pst small{display:block;font-size:12px;color:var(--mut)}.pst b{font-size:22px;font-weight:600;white-space:nowrap}.pst i{font-style:normal;font-size:12px;font-weight:400;margin-left:2px;color:var(--mut)}.pst em{display:block;font-style:normal;font-size:11px;color:var(--mut)}
@@ -248,7 +258,7 @@ const aiReady=()=>AI.prov==='custom'?!!(AI.cBase&&AI.cModel):!!AI.key;
 const saveAI=()=>{try{localStorage.setItem(KEYS,JSON.stringify(AI))}catch(e){}};
 let models=null,modelsLoading=false,noAIUntil=0,impData=null;
 const V={tab:'chats',sub:null,perEdit:false};
-const busy={};const drafts={};const timers={};let delArm=null,formImg=undefined,formColor=null,grpSel=new Set();
+const busy={};const drafts={};const timers={};let grpPeek=false,delArm=null,formImg=undefined,formColor=null,grpSel=new Set();
 let postFiles=[],proBusy=false;
 const FREQ={off:0,rare:8,some:4,often:1.5,clingy:.5};
 const WD='日一二三四五六';
@@ -275,7 +285,7 @@ async function initStore(){
   if(PUSH.on&&'serviceWorker' in navigator)navigator.serviceWorker.register('sw.js').catch(()=>{});
   lsSet('jiaoseq-push-slot',SLOT);if(PUSH.on)setTimeout(()=>syncPush(true),1500);
   deliverDue();
-  setTimeout(()=>{proCheck();planPush();setTimeout(autoPost,4000);setTimeout(careRun,2500)},1500);setInterval(()=>{deliverDue();proCheck();planPush();autoPost();careRun()},60e3);setInterval(()=>{if(document.visibilityState==='visible')deliverComments()},10e3);deliverComments();
+  setTimeout(()=>{proCheck();planPush();setTimeout(autoPost,4000);setTimeout(careRun,2500)},1500);setInterval(()=>{deliverDue();proCheck();planPush();autoPost();careRun();specialPlan();peekRun();diaryRun()},60e3);setTimeout(diaryRun,9000);setTimeout(specialPlan,6000);setInterval(()=>{if(document.visibilityState==='visible')deliverComments()},10e3);deliverComments();
   document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'){deliverDue();deliverComments();proCheck();planPush();setTimeout(autoPost,3000);setTimeout(careRun,2000)}else{if(saveT)flush();syncPush()}});
 }
 
@@ -293,6 +303,8 @@ function toast(t){const el=$('#toast');el.textContent=t;el.classList.add('on');c
 function ensureDM(cid){const id='dm_'+cid;if(!S.convs[id]){S.convs[id]={type:'dm',members:[cid],msgs:[],ts:Date.now()};save('convs',id)}return id}
 function push(cv,f,t,img){const c=S.convs[cv];c.msgs.push(img?{f,t:t||'',img,ts:Date.now()}:{f,t,ts:Date.now()});{const withImg=c.msgs.filter(m=>m.img);if(withImg.length>24)withImg.slice(0,withImg.length-24).forEach(m=>{m.img='';m.gone=1})}if(c.msgs.length>300)c.msgs=c.msgs.slice(-300);c.ts=Date.now();
   if(f!=='me'&&!(V.sub?.k==='conv'&&V.sub.id===cv&&document.visibilityState==='visible'))c.unread=(c.unread||0)+1}
+const qSnip=m=>(m.t||(m.stk?'[貼圖]':(m.img||m.gone)?'[照片]':'')).slice(0,60);
+function takeQuote(cv){const q=V.quote;if(!q||q.cv!==cv)return null;V.quote=null;const m=S.convs[cv]&&S.convs[cv].msgs[q.i];return m?{f:m.f,t:qSnip(m)}:null}
 function pushStk(cv,f,id){push(cv,f,'');const c=S.convs[cv],m=c.msgs[c.msgs.length-1];m.stk=id}
 const anyUnread=()=>Object.values(S.convs).some(c=>c.unread>0&&c.members.some(m=>S.chars[m]));
 const convTitle=c=>c.type==='dm'?chName(c.members[0]):(c.title||c.members.map(chName).join('、'));
@@ -383,7 +395,7 @@ async function readFile(f){
   return decodeText(await f.arrayBuffer()).trim();
 }
 const cnt=(v,m)=>`${(v||'').length.toLocaleString()} / ${m.toLocaleString()} 字`;
-function hist(cv,n=24){return cv.msgs.slice(-n).map(m=>`${chName(m.f)}：${m.t||''}${m.img||m.gone?'（傳了一張照片）':''}${m.stk?`（傳了貼圖「${(stkById(m.stk)||{name:'貼圖'}).name}」）`:''}`).join('\n')||'（還沒有對話）'}
+function hist(cv,n=24){return cv.msgs.slice(-n).map(m=>`${chName(m.f)}：${m.q?`（回覆${m.q.f==='me'?meName():chName(m.q.f)}說的「${m.q.t}」）`:''}${m.t||''}${m.img||m.gone?'（傳了一張照片）':''}${m.stk?`（傳了貼圖「${(stkById(m.stk)||{name:'貼圖'}).name}」）`:''}`).join('\n')||'（還沒有對話）'}
 async function loadModels(key){
   const r=await fetch(GAPI+'models?pageSize=200',{headers:{'x-goog-api-key':key}});
   if(!r.ok)throw r.status;const j=await r.json();
@@ -455,7 +467,7 @@ async function replyDM(cv,mode){
   busy[cv]=[cid];render();
   const st=per(),lt=logText(today()),hn=healthNote(),pt=(st?perText(st):'')+(lt?`。${meName()}今天記錄的身體與心情：${lt}`:'')+(hn?`。${hn}`:'');
   const nw=new Date(),last=c.msgs[c.msgs.length-1];
-  const clock=`現在是星期${WD[nw.getDay()]} ${pad(nw.getHours())}:${pad(nw.getMinutes())}（${meName()}那邊的時間）。`;
+  const clock=`現在是星期${WD[nw.getDay()]} ${pad(nw.getHours())}:${pad(nw.getMinutes())}（${meName()}那邊的時間）。${dayCtx(cid)}`;
   const ctx=logm?`${clock}${meName()}剛剛跟你說了她今天的狀況：${lt||'（沒有特別寫）'}。${st&&perText(st)?`（另外：${perText(st)}）`:''}請用你自己的方式回應她、關心她，可以陪她、逗她或給一點貼心的小建議，但不要說教，也不要講得像醫生。`
     :care?`今天你想主動傳訊息關心對方，因為：${pt}。用你自己的方式自然地關心（不要說是誰提醒你的，也不要說教）。`
     :pro?`${clock}${last?`距離上一則訊息已經過了 ${ago(last.ts)}。`:'你們還沒有聊過天。'}你想主動傳訊息給${meName()}：可以分享你正在做的事、突然想到對方、問候、碎碎念、或接續之前的話題，要符合角色個性和現在的時間。不要每次都問「在幹嘛」。${pt?`（背景資訊，自然時才提：${pt}）`:''}`
@@ -487,8 +499,44 @@ function skipQuiet(ts){let t=ts,i=0;while(inQuiet(t)&&i<30){const d=new Date(t);
 async function genPro(cid,at){
   const ch=S.chars[cid],c=S.convs['dm_'+cid];if(!ch||!c)return null;
   const d=new Date(at),last=c.msgs[c.msgs.length-1];const st=per(),hn=healthNote(),pt=(st?perText(st):'')+(hn?`。${hn}`:''),nP=pickCount(2);
-  const prompt=`你正在扮演一個角色，在類似 LINE 的聊天軟體裡和「${meName()}」私訊。\n\n${persona(ch,true)}\n\n這則訊息會在星期${WD[d.getDay()]} ${pad(d.getHours())}:${pad(d.getMinutes())}（${meName()}那邊的時間）傳出。${last?`那時距離你們上一則訊息大約過了 ${Math.max(1,Math.round((at-last.ts)/36e5))} 小時。`:'你們還沒聊過天。'}你突然想主動傳訊息給${meName()}：可以分享你那時正在做的事、突然想到她、問候、碎碎念、或接續之前的話題，要符合角色個性和那個時間點。不要每次都問「在幹嘛」，也不要提到「通知」或「排程」。${pt?`（背景資訊，自然時才提：${pt}）`:''}\n\n最近的對話：\n${hist(c)}\n\n現在換「${ch.name}」傳訊息。${nP===1?'只傳 1 則':'傳 2 則，每則一行'}，簡短。只輸出訊息本身，不要加名字或引號。${RULE()}`;
+  const prompt=`你正在扮演一個角色，在類似 LINE 的聊天軟體裡和「${meName()}」私訊。\n\n${persona(ch,true)}\n\n這則訊息會在星期${WD[d.getDay()]} ${pad(d.getHours())}:${pad(d.getMinutes())}（${meName()}那邊的時間）傳出。${dayCtx(cid,at)}${last?`那時距離你們上一則訊息大約過了 ${Math.max(1,Math.round((at-last.ts)/36e5))} 小時。`:'你們還沒聊過天。'}你突然想主動傳訊息給${meName()}：可以分享你那時正在做的事、突然想到她、問候、碎碎念、或接續之前的話題，要符合角色個性和那個時間點。不要每次都問「在幹嘛」，也不要提到「通知」或「排程」。${pt?`（背景資訊，自然時才提：${pt}）`:''}\n\n最近的對話：\n${hist(c)}\n\n現在換「${ch.name}」傳訊息。${nP===1?'只傳 1 則':'傳 2 則，每則一行'}，簡短。只輸出訊息本身，不要加名字或引號。${RULE()}`;
   const t=await ask(prompt,null,true);return lines(t,[ch.name]).map(l=>l.t).filter(Boolean).slice(0,nP);
+}
+/* ---------- 紀念日和生日 ---------- */
+const mdOf=d=>(d||'').slice(5,10);
+function specials(dstr){const out=[],md=mdOf(dstr),y=+dstr.slice(0,4),P=S.profile;
+  if(P.bday&&mdOf(P.bday)===md)out.push({key:'me-bday',kind:'me',name:meName()+'的生日',cids:Object.keys(S.chars).filter(id=>S.chars[id].pro!==false).slice(0,6)});
+  for(const[id,c]of Object.entries(S.chars))if(c.bday&&mdOf(c.bday)===md)out.push({key:'c-bday-'+id,kind:'char',cid:id,name:c.name+'的生日',cids:[id]});
+  for(const a of(P.annivs||[]))if(a.date&&mdOf(a.date)===md){const yrs=y-+a.date.slice(0,4);const cids=a.cid&&a.cid!=='all'?(S.chars[a.cid]?[a.cid]:[]):Object.keys(S.chars).filter(id=>S.chars[id].pro!==false).slice(0,6);
+    if(cids.length&&yrs>=0)out.push({key:'an-'+a.id,kind:'anniv',name:a.name||'紀念日',yrs,cids,all:!a.cid||a.cid==='all'})}
+  return out}
+function dayCtx(cid,ts){const d=ds(dn(dOf(ts||Date.now()))),ev=specials(d);if(!ev.length)return'';const me=meName(),a=[];
+  for(const e of ev){if(e.kind==='me')a.push(`今天是${me}的生日！`);
+    else if(e.kind==='char')a.push(e.cid===cid?'今天是你自己的生日。':`今天是${chName(e.cid)}的生日。`);
+    else if(!cid)a.push(`今天是「${e.name}」${e.yrs>0?`（第 ${e.yrs} 年）`:''}。`);
+    else if(e.cids.includes(cid))a.push(`今天是「${e.name}」${e.yrs>0?`（第 ${e.yrs} 年）`:''}，${e.all?`是${me}很重要的日子`:`是你和${me}之間重要的日子`}。`)}
+  return a.length?`（特別的日子：${a.join('')}）`:''}
+let spBusy=false;
+async function specialPlan(){
+  if(spBusy||!aiReady()||Date.now()<noAIUntil)return;spBusy=true;
+  try{const done=S.profile.spDone||(S.profile.spDone={}),q=S.pushq||(S.pushq=[]),now=Date.now(),days=[today()];if(pushOn())days.push(ds(dn(today())+1));
+    for(const ev of specials(today()))if(ev.kind==='char'){const k=`${ev.key}|${today()}`;if(!done[k]&&new Date().getHours()>=8&&!busy.feed){if(await genPost(ev.cid)){done[k]=1;save('profile','p')}}}
+    for(const d of days)for(const ev of specials(d)){if(ev.kind==='char')continue;
+      for(const cid of ev.cids){const k=`${ev.key}|${d}|${cid}`;if(done[k])continue;
+        const mid=new Date(d+'T00:00:00').getTime();let at=mid+60e3+Math.random()*4*60e3;
+        if(cid!==ev.cids[0])at+=Math.random()*90*60e3;
+        at=skipQuiet(at);if(at<now)at=now+20e3+Math.random()*60e3;if(at>now+36*36e5)continue;
+        ensureDM(cid);const t=await genSpecial(cid,at,ev);if(!t||!t.length)break;
+        q.push({id:nid(),cid,at,t,sp:1});done[k]=1;save();save('profile','p')}}
+    for(const k of Object.keys(done))if(k.split('|')[1]<ds(dn(today())-3))delete done[k];
+  }catch(e){}
+  spBusy=false;syncPush();deliverDue();
+}
+async function genSpecial(cid,at,ev){
+  const ch=S.chars[cid];if(!ch)return null;const d=new Date(at),me=meName(),c=S.convs['dm_'+cid];
+  const what=ev.kind==='me'?`今天是${me}的生日，你要傳訊息祝${me}生日快樂。`:`今天是「${ev.name}」${ev.yrs>0?`（第 ${ev.yrs} 年）`:''}，${ev.all?`這天對${me}很重要`:`這是你和${me}之間重要的日子`}，你要傳訊息紀念這一天。`;
+  const prompt=`你正在扮演一個角色，在類似 LINE 的聊天軟體裡和「${me}」私訊。\n\n${persona(ch,true)}\n\n最近的對話：\n${c?hist(c,12):'（還沒有對話）'}\n\n這則訊息會在${d.getMonth()+1}月${d.getDate()}日 ${pad(d.getHours())}:${pad(d.getMinutes())}（${me}那邊的時間）傳出。${what}要用你自己的個性和說話方式，${d.getHours()<2?'可以是剛過零點、搶第一個的祝福，':''}真誠、有你們之間的感覺，不要像賀卡範本。傳 2 到 4 則訊息，每則一行，格式「${ch.name}：內容」。${RULE()}`;
+  const t=await ask(prompt,null,true);return lines(t,[ch.name]).map(l=>l.t).filter(Boolean).slice(0,4);
 }
 async function planPush(){
   if(!pushOn()||!aiReady()||planBusy||Date.now()<noAIUntil)return;
@@ -552,8 +600,28 @@ async function testPush(){
   try{const r=await fetch(PUSH.url+'/test',{method:'POST',headers:{'Content-Type':'text/plain'},body:JSON.stringify({sub:PUSH.sub})});const j=await r.json();
     toast(j.ok?'已送出，幾秒內會收到（App 開著時也會跳）':'送不出去，試試關掉通知再重新開啟')}catch(e){toast('連不上小幫手')}
 }
-function nowClock(ts){const d=new Date(ts||Date.now());return`現在是${d.getMonth()+1}月${d.getDate()}日 星期${WD[d.getDay()]} ${pad(d.getHours())}:${pad(d.getMinutes())}（${meName()}那邊的時間）。說話內容要符合現在的時間點，例如深夜、早上、上班時間。`}
+function nowClock(ts){const d=new Date(ts||Date.now());return`現在是${d.getMonth()+1}月${d.getDate()}日 星期${WD[d.getDay()]} ${pad(d.getHours())}:${pad(d.getMinutes())}（${meName()}那邊的時間）。說話內容要符合現在的時間點，例如深夜、早上、上班時間。${dayCtx(null,d.getTime())}`}
+async function replyPeek(cv,catchUp){
+  const c=S.convs[cv];if(!c||!c.peek)return;const mem=c.members.filter(id=>S.chars[id]);if(mem.length<2||busy[cv]||!aiReady()||Date.now()<noAIUntil)return;
+  busy[cv]=mem;render();
+  const names=mem.map(chName),me=meName(),last=c.msgs[c.msgs.length-1],now=Date.now();
+  const gap=last?now-last.ts:0,n=catchUp?'5 到 9':'3 到 6';
+  const prompt=`你要同時扮演一個私人群組聊天室「${convTitle(c)}」裡的幾個角色，他們在類似 LINE 的群組裡私下聊天。\n\n${mem.map(id=>persona(S.chars[id])).join('\n\n')}${relBlock(mem)}\n\n重要：「${me}」不在這個群組裡，他們完全不知道${me}看得到這些對話。所以他們說話會比平常更真實、更放得開：可以聊自己的日常、互相吐槽、抱怨、八卦，也可以在背後聊到${me}（例如想她、炫耀、吃醋、偷偷商量怎麼對她好），但不要每次都只聊${me}。\n\n${nowClock()}${last&&gap>2*36e5?`距離上次聊天已經過了 ${Math.round(gap/36e5)} 小時。`:''}\n\n最近的對話：\n${hist(c,30)}\n\n${last?'接著聊下去，可以延續話題，也可以有人開新話題。':'這是群組剛開始的對話，自然地開始聊。'}共 ${n} 則訊息，角色之間要互相接話。${MULTI()}\n每則一行，格式「角色名：內容」。角色名只能是：${names.join('、')}。不要出現「${me}」說的話。${RULE()}`;
+  try{const t=await ask(prompt,null,catchUp);const ls=lines(t,names).filter(l=>l.who&&!/貼圖[:：]/.test(l.t)).slice(0,10);
+    if(catchUp&&ls.length){const start=Math.max(last?last.ts+60e3:0,now-Math.min(gap||3*36e5,5*36e5)),span=Math.max(5*60e3,Math.min(now-start-60e3,45*60e3));let ts=now-span;
+      for(const l of ls){c.msgs.push({f:mem[names.indexOf(l.who)],t:l.t,ts:Math.round(ts)});ts+=span/ls.length*(0.5+Math.random())}
+      c.msgs.sort((a,b)=>a.ts-b.ts);if(c.msgs.length>300)c.msgs=c.msgs.slice(-300);c.ts=Math.max(c.ts||0,c.msgs[c.msgs.length-1].ts);
+      if(!(V.sub&&V.sub.k==='conv'&&V.sub.id===cv&&document.visibilityState==='visible'))c.unread=(c.unread||0)+ls.length}
+    else for(const l of ls){busy[cv]=[mem[names.indexOf(l.who)]];render();await sleep(Math.min(2600,900+l.t.length*45));push(cv,mem[names.indexOf(l.who)],l.t);render()}
+    save('convs',cv)}catch(e){}
+  delete busy[cv];render();
+}
+let peekBusy=false;
+async function peekRun(){if(peekBusy||!aiReady()||Date.now()<noAIUntil)return;const now=Date.now();
+  const due=Object.entries(S.convs).filter(([,c])=>c.peek&&!inQuiet(now)&&c.members.filter(id=>S.chars[id]).length>=2&&now-((c.msgs[c.msgs.length-1]||{}).ts||c.ts||0)>(c.nextGap||5*36e5));
+  if(!due.length)return;peekBusy=true;const[id,c]=due[0];c.nextGap=(3+Math.random()*6)*36e5;try{await replyPeek(id,true)}finally{peekBusy=false}}
 async function replyGroup(cv){
+  if(S.convs[cv]&&S.convs[cv].peek)return replyPeek(cv,false);
   const c=S.convs[cv],mem=c.members.filter(id=>S.chars[id]);if(!mem.length||busy[cv])return;
   busy[cv]=mem;render();
   const names=mem.map(chName),pim=pendImgs(c);
@@ -567,7 +635,7 @@ function prunePosts(){const ids=Object.keys(S.posts).sort((a,b)=>S.posts[b].ts-S
 async function genPost(forcedCid,at){
   const ids=Object.keys(S.chars);if(!ids.length||busy.feed)return false;
   const cid=forcedCid&&S.chars[forcedCid]?forcedCid:ids[Math.floor(Math.random()*ids.length)],ch=S.chars[cid],auto=!!forcedCid,ts=at||Date.now();busy.feed=cid;render();
-  const pd=new Date(ts),when=`這則貼文發在星期${WD[pd.getDay()]} ${pad(pd.getHours())}:${pad(pd.getMinutes())}（${meName()}那邊的時間），內容要符合那個時間點。`;
+  const pd=new Date(ts),when=`這則貼文發在星期${WD[pd.getDay()]} ${pad(pd.getHours())}:${pad(pd.getMinutes())}（${meName()}那邊的時間），內容要符合那個時間點。${dayCtx(cid,ts)}`;
   const mine=Object.values(S.posts).filter(p=>p.a===cid).sort((a,b)=>b.ts-a.ts).slice(0,4).map(p=>'- '+p.t.slice(0,80)).join('\n')||'（還沒發過）';
   const dm=S.convs['dm_'+cid];
   const prompt=`你正在扮演一個角色，要在類似 Threads 的社群平台發一則新貼文。\n\n${persona(ch,true)}\n\n${ch.name}最近發過的貼文：\n${mine}\n\n最近和${meName()}的私訊（可以拿來當靈感、偷偷呼應，但不要直接公開私密內容）：\n${dm?hist(dm,10):'（無）'}\n\n${when}寫一則新貼文：日常、心情、碎念、想法、小抱怨或分享都可以，30 到 120 字，跟之前的不要重複。只輸出貼文內容。${RULE()}`;
@@ -676,25 +744,28 @@ function vChats(){
   return h+list.map(([id,c])=>{const last=c.msgs[c.msgs.length-1];
     const pic=c.type==='dm'?av(c.members[0]):`<div class="stackav">${av(c.members[0])}${av(c.members[1]||c.members[0])}</div>`;
     const prev=busy[id]?'正在輸入…':careSet.has(id)?'有一則新訊息':last?(c.type==='group'&&last.f!=='me'?chName(last.f)+'：':'')+(last.t||((last.img||last.gone)?'[照片]':last.stk?'[貼圖]':'')):'開始聊天吧';
-    const un=(c.unread||0)+(careSet.has(id)?1:0);return`<button class="row ${un?'unread':''}" data-act="openConv" data-id="${id}">${pic}<span class="t"><b>${esc(convTitle(c))}${c.type==='group'?` <small style="color:var(--mut);font-weight:400">(${c.members.length+1})</small>`:''}</b><span class="p">${esc(prev)}</span></span><span class="r">${last?`<time>${fmtT(last.ts)}</time>`:''}${(c.unread||0)+(careSet.has(id)?1:0)?`<span class="pill">${(c.unread||0)+(careSet.has(id)?1:0)}</span>`:''}</span></button>`}).join('');
+    const un=(c.unread||0)+(careSet.has(id)?1:0);return`<button class="row ${un?'unread':''}" data-act="openConv" data-id="${id}">${pic}<span class="t"><b>${esc(convTitle(c))}${c.type==='group'?` <small style="color:var(--mut);font-weight:400">${c.peek?'👀':`(${c.members.length+1})`}</small>`:''}</b><span class="p">${esc(prev)}</span></span><span class="r">${last?`<time>${fmtT(last.ts)}</time>`:''}${(c.unread||0)+(careSet.has(id)?1:0)?`<span class="pill">${(c.unread||0)+(careSet.has(id)?1:0)}</span>`:''}</span></button>`}).join('');
 }
 function vConv(id){
   const c=S.convs[id];if(!c)return vChats();
-  let h=subHead(esc(convTitle(c))+(c.type==='group'?`<small>${c.members.length+1} 人</small>`:''),`<button class="icon" data-act="convMenu" aria-label="聊天室設定">${ic('more')}</button>`);
+  let h=subHead(esc(convTitle(c))+(c.type==='group'?`<small>${c.peek?'👀 偷看中':c.members.length+1+' 人'}</small>`:''),`<button class="icon" data-act="convMenu" aria-label="聊天室設定">${ic('more')}</button>`);
   if(V.convMenu===id)h+=`<div class="pick"><p class="q" style="font-style:normal">${esc(convTitle(c))}</p><div class="btns"><button class="btn sm ghost" data-act="clearConv">清空聊天紀錄</button>${c.type==='group'?'<button class="btn sm" data-act="delConv" style="background:var(--acc);color:#fff">刪除群組</button>':''}<button class="btn sm ghost" data-act="convMenuNo">取消</button></div>${c.type==='dm'?'<p class="note" style="margin:10px 0 0">私訊聊天室會一直保留，想完全移除可以到「角色」刪除角色。</p>':''}</div>`;
   let out='',prevF=null,prevDay='';
   const lastMe=c.msgs.map(m=>m.f).lastIndexOf('me'),replied=c.msgs.slice(lastMe+1).length>0;
   c.msgs.forEach((m,i)=>{const day=new Date(m.ts).toDateString();if(day!==prevDay){out+=`<div class="daysep">${new Date(m.ts).getMonth()+1}月${new Date(m.ts).getDate()}日</div>`;prevDay=day;prevF=null}
     const me=m.f==='me',cont=prevF===m.f;prevF=m.f;
     const meta=`<div class="meta">${me&&i===lastMe&&replied?'已讀<br>':''}${fmtT(m.ts)}</div>`;
-    out+=`<div class="m ${me?'me':''} ${cont?'cont':''}">${me?'':av(m.f,'s')}<div class="col">${me?'':`<div class="who">${esc(chName(m.f))}</div>`}${m.stk?stkHTML(m.stk):''}${m.img&&IMG.test(m.img)?`<img class="mimg" src="${m.img}" alt="照片" data-act="zoom" loading="lazy">`:m.gone?'<div class="gone">照片已過期</div>':''}${m.t?`<div class="bb ${V.pick&&V.pick.cv===id&&V.pick.i===i?'on':''}" data-act="pickMsg" data-id="${i}">${esc(m.t)}</div>`:''}</div>${meta}</div>`});
+    out+=`<div class="m ${me?'me':''} ${cont?'cont':''}">${me?'':av(m.f,'s')}<div class="col">${me?'':`<div class="who">${esc(chName(m.f))}</div>`}${m.q?`<div class="qt"><b>${esc(m.q.f==='me'?meName():chName(m.q.f))}</b>${esc(m.q.t)}</div>`:''}${m.stk?stkHTML(m.stk):''}${m.img&&IMG.test(m.img)?`<img class="mimg" src="${m.img}" alt="照片" data-act="zoom" loading="lazy">`:m.gone?'<div class="gone">照片已過期</div>':''}${m.t?`<div class="bb ${V.pick&&V.pick.cv===id&&V.pick.i===i?'on':''}" data-act="pickMsg" data-id="${i}">${esc(m.t)}</div>`:''}</div>${meta}</div>`});
   if(busy[id])out+=`<div class="m typing">${av(busy[id][0],'s')}<div class="col"><div class="bb"><i></i><i></i><i></i></div></div></div>`;
   if(!c.msgs.length&&!busy[id])out+=`<div class="daysep">傳第一則訊息，或按 ✦ 讓對方先開口</div>`;
   const k='in-'+id;
   if(V.pick&&V.pick.cv===id&&c.msgs[V.pick.i]){const pm=c.msgs[V.pick.i],who=pm.f==='me'?c.members:[pm.f];out+=`<div style="height:150px"></div>`;
-    h+=`<div class="pick"><p class="q">「${esc(pm.t)}」</p><div class="btns">${who.filter(x=>S.chars[x]).map(x=>`<button class="btn sm" data-act="remember" data-id="${x}">讓${esc(chName(x))}記住</button>`).join('')}<button class="btn sm ghost" data-act="pickNo">取消</button></div></div>`}
+    h+=`<div class="pick"><p class="q">「${esc(pm.t)}」</p><div class="btns">${c.peek?'':'<button class="btn sm" data-act="quoteMsg">↩ 回覆</button>'}${who.filter(x=>S.chars[x]).map(x=>`<button class="btn sm" data-act="remember" data-id="${x}">讓${esc(chName(x))}記住</button>`).join('')}<button class="btn sm ghost" data-act="pickNo">取消</button></div></div>`}
   if(V.stkOpen)out+=`<div style="height:min(300px,42vh)"></div>`;
-  return h+`<div class="chat">${out}</div>${V.stkOpen?vStk():''}<div class="inbar"><button class="icon" data-act="nudge" aria-label="讓角色說話" title="讓角色說話" ${busy[id]?'disabled':''}>${ic('spark')}</button><label class="icon" aria-label="傳照片" title="傳照片" style="cursor:pointer">${ic('img')}<input type="file" id="chat-file" accept="image/*" multiple hidden></label><button class="icon" data-act="stkTog" aria-label="貼圖" title="貼圖" ${V.stkOpen?'style="background:var(--sf)"':''}>${ic('stk')}</button><textarea id="${k}" rows="1" placeholder="輸入訊息" aria-label="輸入訊息">${esc(drafts[k]||'')}</textarea><button class="icon pri" data-act="send" aria-label="傳送">${ic('send')}</button></div>`;
+  const qm=V.quote&&V.quote.cv===id&&c.msgs[V.quote.i];if(qm)out+=`<div style="height:44px"></div>`;
+  if(c.peek){if(!c.msgs.length&&!busy[id])out=`<div class="daysep">他們還沒開始聊…</div>`;
+    return h+`<div class="chat">${out}</div><div class="inbar" style="align-items:center;padding-left:16px"><span style="flex:1;font-size:13px;color:var(--mut)">👀 你在偷看，他們不知道</span><button class="btn sm" data-act="peekMore" ${busy[id]?'disabled':''}>${busy[id]?'聊天中…':'讓他們繼續聊'}</button></div>`}
+  return h+`<div class="chat">${out}</div>${V.stkOpen?vStk():''}${qm?`<div class="qbar"><span class="qx"><b>回覆 ${esc(qm.f==='me'?meName():chName(qm.f))}</b>${esc(qSnip(qm))}</span><button class="icon" data-act="quoteNo" aria-label="取消回覆">✕</button></div>`:''}<div class="inbar"><button class="icon" data-act="nudge" aria-label="讓角色說話" title="讓角色說話" ${busy[id]?'disabled':''}>${ic('spark')}</button><label class="icon" aria-label="傳照片" title="傳照片" style="cursor:pointer">${ic('img')}<input type="file" id="chat-file" accept="image/*" multiple hidden></label><button class="icon" data-act="stkTog" aria-label="貼圖" title="貼圖" ${V.stkOpen?'style="background:var(--sf)"':''}>${ic('stk')}</button><textarea id="${k}" rows="1" placeholder="輸入訊息" aria-label="輸入訊息">${esc(drafts[k]||'')}</textarea><button class="icon pri" data-act="send" aria-label="傳送">${ic('send')}</button></div>`;
 }
 function vStk(){const tab=V.stkTab||'b',mine=myStk();
   let g='';if(tab==='b')g=STK_BUILTIN.map(x=>`<button class="s" data-act="stkSend" data-id="${x.id}" aria-label="${esc(x.name)}"><span class="se">${x.e}</span><small>${esc(x.name)}</small></button>`).join('');
@@ -703,7 +774,7 @@ function vStk(){const tab=V.stkTab||'b',mine=myStk();
   return`<div class="stkd"><div class="tabs2"><button class="chip ${tab==='b'?'on':''}" data-act="stkTab" data-id="b">內建</button><button class="chip ${tab==='m'?'on':''}" data-act="stkTab" data-id="m">我的貼圖${mine.length?` ${mine.length}`:''}</button><span style="flex:1"></span>${tab==='m'&&mine.length?`<button class="btn sm ghost" data-act="stkEditTog">${V.stkEdit?'完成':'管理'}</button>`:''}</div><div class="grid2">${g}</div>${nf}</div>`}
 function vGroup(){
   const ids=Object.keys(S.chars);
-  return subHead('建立群組')+`<div class="form"><label>群組名稱 <em>可以不填，會用成員名字</em><input type="text" id="g-name" value="${esc(drafts['g-name']||'')}" maxlength="30"></label><div><div style="font-weight:700;font-size:14px;margin-bottom:6px">選擇成員（至少 2 位）</div>${ids.map(id=>`<label class="chk"><input type="checkbox" data-act="gsel" data-id="${id}" ${grpSel.has(id)?'checked':''}>${av(id,'s')}${esc(chName(id))}</label>`).join('')}</div><div class="btns"><button class="btn" data-act="makeGroup" ${grpSel.size<2?'disabled':''}>建立群組</button></div></div>`;
+  return subHead('建立群組')+`<div class="form"><label>群組名稱 <em>可以不填，會用成員名字</em><input type="text" id="g-name" value="${esc(drafts['g-name']||'')}" maxlength="30"></label><div><div style="font-weight:700;font-size:14px;margin-bottom:6px">選擇成員（至少 2 位）</div>${ids.map(id=>`<label class="chk"><input type="checkbox" data-act="gsel" data-id="${id}" ${grpSel.has(id)?'checked':''}>${av(id,'s')}${esc(chName(id))}</label>`).join('')}</div><label class="chk" style="border-top:1px solid var(--line);padding-top:14px"><input type="checkbox" data-act="gpeek" ${grpPeek?'checked':''}>👀 我不加入，偷看他們私下聊天</label><p class="note" style="margin:-6px 0 0">他們不知道你看得到，會在背後聊天、吐槽，也可能聊到你。你不在的時候，他們也會自己聊。</p><div class="btns"><button class="btn" data-act="makeGroup" ${grpSel.size<2?'disabled':''}>${grpPeek?'建立偷看群組':'建立群組'}</button></div></div>`;
 }
 function postHTML(id,p,detail){
   const n=(p.lk?.length||0)+(p.liked?1:0);
@@ -731,15 +802,44 @@ function vPost(id){
 }
 function vChars(){
   const ids=Object.keys(S.chars).sort((a,b)=>(S.chars[a].created||0)-(S.chars[b].created||0));
-  return head('角色',`<small style="color:var(--mut);padding-right:8px">${ids.length} 位</small>`)+`<div class="grid">${ids.map(id=>`<button class="card" data-act="editChar" data-id="${id}">${av(id,'l')}<b>${esc(S.chars[id].name)}</b><span>${esc((S.chars[id].persona||'').split('\n')[0])}</span></button>`).join('')}<button class="card add" data-act="newChar">${ic('plus')}新增角色</button></div>`;
+  const dl=ids.filter(id=>(S.chars[id].diaries||[]).length).map(id=>({id,e:S.chars[id].diaries[S.chars[id].diaries.length-1]})).sort((a,b)=>b.e.ts-a.e.ts);
+  const strip=dl.length?`<div class="sec" style="border:0;padding-bottom:0"><h2>📔 日記</h2><div class="dstrip">${dl.map(({id,e})=>`<button class="dcard ${S.chars[id].dNew?'new':''}" data-act="openDiary" data-id="${id}">${av(id,'s')}<b>${esc(chName(id))}</b><small>${md(e.d)}</small><span>${esc(e.t.slice(0,40))}</span></button>`).join('')}</div></div>`:'';
+  return head('角色',`<small style="color:var(--mut);padding-right:8px">${ids.length} 位</small>`)+strip+`<div class="grid">${ids.map(id=>`<button class="card" data-act="editChar" data-id="${id}">${av(id,'l')}<b>${esc(S.chars[id].name)}</b><span>${esc((S.chars[id].persona||'').split('\n')[0])}</span></button>`).join('')}<button class="card add" data-act="newChar">${ic('plus')}新增角色</button></div>`;
 }
 const TPL='例如：\n身份：28 歲的調香師，住在台北\n個性：外表冷淡、其實很會照顧人，嘴硬心軟\n說話方式：簡短、偶爾毒舌，不太用表情符號\n和我的關係：從小一起長大的鄰居\n喜歡：雨天、黑咖啡；討厭：吵鬧的地方';
+function vDiary(id){
+  const c=S.chars[id];if(!c)return vChars();const es=(c.diaries||[]).slice().reverse();
+  if(c.dNew){c.dNew=false;save('chars',id)}
+  let h=subHead(`${esc(c.name)} 的日記`);
+  h+=`<div class="sec" style="padding-top:14px"><p class="note" style="margin:0">🤫 這是${esc(c.name)}的私密日記，他不知道你看得到。每天晚上 9 點後會寫當天的，沒寫到的話隔天補。</p><div class="btns" style="margin-top:12px"><button class="btn sm ghost" data-act="diaryNow" data-id="${id}" ${busy['d_'+id]?'disabled':''}>${busy['d_'+id]?'他正在寫…':(c.diaries||[]).some(e=>e.d===today())?'重寫今天的日記':'讓他現在寫今天的日記'}</button></div></div>`;
+  if(!es.length)h+=`<p class="note" style="padding:20px">還沒有日記。</p>`;
+  h+=es.map(e=>{const[y,m,d]=e.d.split('-').map(Number);return`<div class="dent"><h3>${m} 月 ${d} 日（${WD[new Date(Date.UTC(y,m-1,d)).getUTCDay()]}）</h3><p>${esc(e.t)}</p></div>`}).join('');
+  return h}
+async function writeDiary(id,d,quiet){
+  const c=S.chars[id];if(!c||busy['d_'+id])return false;busy['d_'+id]=1;render();
+  const me=meName(),inDay=m=>dOf(m.ts)===d,fmt=m=>`${pad(new Date(m.ts).getHours())}:${pad(new Date(m.ts).getMinutes())} ${chName(m.f)}：${m.t||(m.stk?'（貼圖）':(m.img||m.gone)?'（照片）':'')}`;
+  const dm=S.convs['dm_'+id],dmT=dm?dm.msgs.filter(inDay).slice(-40).map(fmt).join('\n'):'';
+  const grp=Object.values(S.convs).filter(cv=>cv.type==='group'&&cv.members.includes(id)).map(cv=>{const t=cv.msgs.filter(inDay).slice(-15).map(fmt).join('\n');return t?`群組「${convTitle(cv)}」${cv.peek?`（${me}不在的私人群組）`:''}：\n${t}`:''}).filter(Boolean).join('\n\n');
+  const posts=Object.values(S.posts).filter(p=>dOf(p.ts)===d&&(p.a===id||p.a==='me'||(p.cm||[]).some(x=>x.f===id))).slice(-6).map(p=>`${chName(p.a)}發文：${(p.t||'（照片）').slice(0,100)}${(p.cm||[]).filter(x=>x.f===id||x.f==='me').slice(-4).map(x=>`\n  ${chName(x.f)}留言：${x.t.slice(0,60)}`).join('')}`).join('\n');
+  const prev=(c.diaries||[]).filter(e=>e.d<d).slice(-2).map(e=>`${e.d}：${e.t.slice(0,120)}`).join('\n');
+  const [y,m,dd]=d.split('-').map(Number),dow=WD[new Date(Date.UTC(y,m-1,dd)).getUTCDay()];
+  const prompt=`你正在扮演一個角色，要寫一篇只給自己看的私密日記。\n\n${persona(c,true)}\n\n今天是${m}月${dd}日 星期${dow}。${dayCtx(id,new Date(d+'T12:00:00').getTime())}\n\n今天和${me}的私訊：\n${dmT||'（今天沒有聊天）'}${grp?`\n\n今天的群組聊天：\n${grp}`:''}${posts?`\n\n今天在動態上的事：\n${posts}`:''}${prev?`\n\n你前幾天的日記（參考語氣，不要重複內容）：\n${prev}`:''}\n\n用${c.name}的第一人稱寫今天的日記，100 到 250 字。這是私密日記，${me}不會看到，所以可以寫平常不會說出口的真心話：對${me}的想法、在意的小細節、沒說出口的情緒、今天自己發生的事。如果今天沒和${me}聊天，就寫自己的生活，或想念、在意的心情。語氣、用詞要完全符合角色個性（有的人寫得很短很酷，有的人很碎念）。不要寫日期標題，只輸出日記內文。${RULE()}`;
+  try{const t=(await ask(prompt,null,quiet)).trim();if(!t)throw 0;const cc=S.chars[id];if(!cc)return false;
+    cc.diaries=[...(cc.diaries||[]).filter(e=>e.d!==d),{d,t:t.slice(0,1200),ts:Date.now()}].sort((a,b)=>a.d<b.d?-1:1).slice(-30);cc.dNew=true;save('chars',id);return true}
+  catch(e){return false}finally{delete busy['d_'+id];render()}}
+let diaryBusy=false;
+async function diaryRun(){if(diaryBusy||!aiReady()||Date.now()<noAIUntil)return;const hr=new Date().getHours(),t=today(),y=ds(dn(t)-1);
+  for(const[id,c]of Object.entries(S.chars)){if(c.diary===false)continue;const has=new Set((c.diaries||[]).map(e=>e.d));
+    const d=hr>=21?(has.has(t)?null:t):(has.has(y)?null:y);if(!d)continue;
+    if(d===y&&(c.created||0)>new Date(t+'T00:00:00').getTime())continue;
+    if(d===t&&inQuiet(Date.now()))continue;
+    diaryBusy=true;try{await writeDiary(id,d,true)}finally{diaryBusy=false}return}}
 function vCharEdit(id){
   const c=id==='new'?{name:'',persona:'',color:COLORS[Object.keys(S.chars).length%COLORS.length]}:S.chars[id];if(!c)return vChars();
   if(formColor===null)formColor=c.color;if(formImg===undefined)formImg=c.img||'';
   const nm=drafts['c-name']??c.name,ps=drafts['c-persona']??c.persona,rf=drafts['c-ref']??(c.ref||''),mmv=drafts['c-mem']??(c.mem||'');
   const pv=formImg&&IMG.test(formImg)?`<div class="av l" id="c-av" style="background-image:url('${formImg}')"></div>`:`<div class="av l" id="c-av">${esc((nm||'?').slice(0,1))}</div>`;
-  return subHead(id==='new'?'新增角色':'編輯角色',id!=='new'?`<button class="icon" data-act="charMenu" aria-label="角色設定">${ic('more')}</button>`:'')+(id!=='new'&&V.charMenu===id?`<div class="pick"><p class="q" style="font-style:normal">${esc(chName(id))}</p><div class="btns"><button class="btn sm" data-act="delChar2" data-id="${id}" style="background:var(--acc);color:#fff">刪除角色</button><button class="btn sm ghost" data-act="charMenuNo">取消</button></div><p class="note" style="margin:10px 0 0">他的私訊、發過的貼文會一起刪掉，群組裡也會把他移出。刪掉就救不回來。</p></div>`:'')+`<div class="form"><div class="avedit">${pv}<div style="display:flex;flex-direction:column;gap:8px"><label class="btn ghost sm" style="display:inline-flex;flex-direction:row;align-items:center;cursor:pointer;font-size:14px">上傳頭像<input type="file" id="c-file" accept="image/*" hidden></label>${formImg?'<button class="btn ghost sm" data-act="rmImg">移除頭像</button>':''}</div></div>
+  return subHead(id==='new'?'新增角色':'編輯角色',id!=='new'?`<button class="icon" data-act="charMenu" aria-label="角色設定">${ic('more')}</button>`:'')+(id!=='new'&&V.charMenu===id?`<div class="pick"><p class="q" style="font-style:normal">${esc(chName(id))}</p><div class="btns"><button class="btn sm ghost" data-act="openDiary" data-id="${id}">📔 看日記</button><button class="btn sm" data-act="delChar2" data-id="${id}" style="background:var(--acc);color:#fff">刪除角色</button><button class="btn sm ghost" data-act="charMenuNo">取消</button></div><p class="note" style="margin:10px 0 0">他的私訊、發過的貼文會一起刪掉，群組裡也會把他移出。刪掉就救不回來。</p></div>`:'')+`<div class="form"><div class="avedit">${pv}<div style="display:flex;flex-direction:column;gap:8px"><label class="btn ghost sm" style="display:inline-flex;flex-direction:row;align-items:center;cursor:pointer;font-size:14px">上傳頭像<input type="file" id="c-file" accept="image/*" hidden></label>${formImg?'<button class="btn ghost sm" data-act="rmImg">移除頭像</button>':''}</div></div>
   <div><div style="font-weight:700;font-size:14px;margin-bottom:6px">代表色</div><div class="sw">${COLORS.map(col=>`<button data-act="color" data-id="${col}" class="${col===formColor?'on':''}" style="background:${col}" aria-label="顏色"></button>`).join('')}</div></div>
   <label>名字<input type="text" id="c-name" value="${esc(nm)}" maxlength="20" placeholder="角色的名字"></label>
   <label>人設 <em>越詳細，角色越像他自己。可以直接貼上，或從檔案匯入（.txt、.md、Word .docx）。<br>請使用你自己創作，或作者同意使用的角色設定。</em><textarea id="c-persona" maxlength="${PMAX}" placeholder="${esc(TPL)}">${esc(ps)}</textarea></label>
@@ -749,8 +849,9 @@ function vCharEdit(id){
   ${(()=>{const others=Object.keys(S.chars).filter(x=>x!==id);if(!others.length)return'';return`<div><div style="font-weight:600;font-size:13px">他和其他角色的關係（選填）</div><div class="note" style="margin:4px 0 10px">不填也可以，AI 會依人設自己判斷，例如大家都是你的另一半，就會互相吃醋。想特別指定時再寫。</div>${others.map(o=>{const k='c-rel-'+o,v=drafts[k]??((c.rel||{})[o]||'');return`<label style="flex-direction:row;align-items:flex-start;gap:12px;margin-bottom:12px">${av(o,'s')}<span style="flex:1;display:flex;flex-direction:column;gap:6px">${esc(chName(o))}<textarea id="${k}" maxlength="600" style="min-height:64px" placeholder="例如：親哥哥，覺得他太愛管閒事，但真的出事會第一個衝過去">${esc(v)}</textarea></span></label>`}).join('')}</div>`})()}
   <label>參考對話 <em>選填。上傳你跟這個角色以前的聊天紀錄（例如 LINE 匯出的 .txt），他會學著用一樣的語氣跟你說話。太長的話會保留最新的部分。</em><textarea id="c-ref" maxlength="${RMAX}" style="min-height:140px" placeholder="可以貼上對話，或用下面的按鈕上傳檔案">${esc(rf)}</textarea></label>
   <div class="btns" style="align-items:center;margin-top:-8px"><label class="btn ghost sm" style="display:inline-flex;flex-direction:row;align-items:center;cursor:pointer;font-size:14px">上傳對話檔案<input type="file" id="c-rfile" accept=".txt,.md,.docx,.json,.csv,text/*" hidden></label>${rf?'<button class="btn ghost sm" data-act="clrRef">清除</button>':''}<span class="note" style="margin:0" id="c-rcount">${cnt(rf,RMAX)}</span></div>
-  <label class="chk"><input type="checkbox" id="c-pro" ${(drafts['c-pro']??(c.pro!==false))?'checked':''}>會主動傳訊息給我</label>
+  <label class="chk"><input type="checkbox" id="c-pro" ${(drafts['c-pro']??(c.pro!==false))?'checked':''}>會主動傳訊息給我</label><label class="chk"><input type="checkbox" id="c-diary" ${(drafts['c-diary']??(c.diary!==false))?'checked':''}>📔 每天晚上寫日記（每篇用 1 次 AI 額度）</label>
   <label>自己發文的頻率 <em>每個角色可以不一樣。好幾個角色同時想發文時會排隊，不會擠在一起。</em><select id="c-pf">${PFREQ_LABEL.map(([v,l])=>`<option value="${v}" ${(drafts['c-pf']??(c.postFreq||'day'))===v?'selected':''}>${l}</option>`).join('')}</select>${autoNote(c,'pf')}</label>
+  <label>他的生日 <em>選填。當天他會發文，其他角色也會知道（年份隨便選沒關係）</em><input type="date" id="c-bday" value="${esc(drafts['c-bday']??(c.bday||''))}"></label>
   <label>性別 <em>讓其他角色稱呼他時不會叫錯「他／她」「你／妳」。</em><select id="c-gen">${[['','從人設判斷'],['m','男'],['f','女'],['x','其他／不指定']].map(([v,l])=>`<option value="${v}" ${(drafts['c-gen']??(c.gender||''))===v?'selected':''}>${l}</option>`).join('')}</select></label>
   <label>表情符號 <em>他傳訊息、發文、留言時用不用 emoji 或顏文字。</em><select id="c-emo">${EMO_LABEL.map(([v,l])=>`<option value="${v}" ${(drafts['c-emo']??(c.emoji||'auto'))===v?'selected':''}>${l}</option>`).join('')}</select></label>
   <label>動態留言的速度 <em>他在動態看到貼文或被回覆時，多久才會留言。</em><select id="c-cs">${CSPEED_LABEL.map(([v,l])=>`<option value="${v}" ${(drafts['c-cs']??(c.cSpeed||'mid'))===v?'selected':''}>${l}</option>`).join('')}</select>${autoNote(c,'cs')}</label>
@@ -881,6 +982,11 @@ function endBtn(d){const s0=startOf(d);if(!s0)return'';if(pEnds()[s0]===d)return
 function setEnd(d){const s0=startOf(d);if(!s0){toast('這天前面沒有經期開始日');return false}pEnds()[s0]=d;const lg=dlog();for(let x=dn(d)+1;x<dn(s0)+15;x++){const k=ds(x);if(lg[k]&&lg[k].flow){delete lg[k].flow;tidy(k)}}return true}
 function vMe(){
   let h=head('我')+`<div class="sec"><h2>我的大頭貼和名字</h2><div class="form" style="padding:0"><div class="avedit">${av('me','l')}<div style="display:flex;flex-direction:column;gap:8px"><label class="btn ghost sm" style="display:inline-flex;flex-direction:row;align-items:center;cursor:pointer;font-size:14px">${S.profile.img?'換一張照片':'上傳照片'}<input type="file" id="me-file" accept="image/*" hidden></label>${S.profile.img?'<button class="btn ghost sm" data-act="rmMeImg">移除照片</button>':''}</div></div><label>角色們會這樣叫你<input type="text" id="me-name" value="${esc(drafts['me-name']??S.profile.me??'')}" maxlength="20" placeholder="例如：小花"></label><label>你的性別 <em>角色會用對的方式稱呼你（妳／你）</em><select id="me-gen">${[['f','女（她／妳）'],['m','男（他／你）'],['x','不指定（你）']].map(([v,l])=>`<option value="${v}" ${(S.profile.gender||'f')===v?'selected':''}>${l}</option>`).join('')}</select></label></div></div>`+vAI();
+  {const P=S.profile,an=P.annivs||[],ids=Object.keys(S.chars);
+  h+=`<div class="sec"><h2>生日和紀念日</h2><div class="form" style="padding:0"><label>我的生日 <em>當天角色會傳訊息祝你生日快樂，有開通知的話零點就會收到</em><input type="date" id="me-bday" value="${esc(P.bday||'')}"></label></div>
+  ${an.length?`<div class="anl">${an.map(a=>`<div class="an"><span class="t"><b>${esc(a.name||'紀念日')}</b><small>${+a.date.slice(5,7)} 月 ${+a.date.slice(8,10)} 日${+a.date.slice(0,4)>1900?` · ${a.date.slice(0,4)} 年開始`:''} · ${a.cid&&a.cid!=='all'?esc(chName(a.cid)):'所有角色'}</small></span><button class="btn sm ghost" data-act="anDel" data-id="${a.id}">刪除</button></div>`).join('')}</div>`:''}
+  ${ids.length?`<div class="form" style="padding:0;margin-top:14px"><label>新增紀念日<input type="text" id="an-name" placeholder="例如：交往紀念日、第一次見面" maxlength="20" value="${esc(drafts['an-name']||'')}"></label><div class="slp"><label>日期<input type="date" id="an-date" value="${esc(drafts['an-date']||'')}"></label><label>跟誰<select id="an-cid"><option value="all">所有角色</option>${ids.map(id=>`<option value="${id}" ${drafts['an-cid']===id?'selected':''}>${esc(chName(id))}</option>`).join('')}</select></label></div><div class="btns"><button class="btn ghost" data-act="anAdd">＋ 新增</button></div></div>`:''}
+  <p class="note">當天角色會記得，聊天、發文時也會提到。角色自己的生日可以在「角色」裡設定。</p></div>`}
   const fq=S.profile.pro||'some';
   h+=`<div class="sec"><h2>角色主動傳訊息</h2><div class="form" style="padding:0"><label>多久找你一次<select id="pro-freq">${[['off','關閉'],['rare','偶爾（約 8 小時）'],['some','有時候（約 4 小時）'],['often','常常（約 1.5 小時）'],['clingy','很黏人（約 30 分鐘）']].map(([v,l])=>`<option value="${v}" ${fq===v?'selected':''}>${l}</option>`).join('')}</select></label></div><p class="note">你打開 SynDay 的時候，好一陣子沒聊天的角色會傳訊息給你；頁面開著時也會不定時收到。${pushOn()?'手機通知已開啟，關掉 SynDay 時也會收到。':'想在關掉 SynDay 時也收到，可以在下面開啟手機通知。'}每個角色可以在「角色」裡個別關掉。</p></div>`;
   {const q=quietCfg(),hrs=Array.from({length:24},(_,i)=>i),on=pushOn(),cnt=(S.pushq||[]).filter(x=>x.at>Date.now()).length;
@@ -904,7 +1010,7 @@ function render(){
   const f=document.activeElement,fid=f&&f.id,sel=f&&f.selectionStart;
   const y=window.scrollY,chatBefore=document.querySelectorAll('.chat .m,.cm').length;
   const s=V.sub;let body;
-  if(s?.k==='conv')body=vConv(s.id);else if(s?.k==='post')body=vPost(s.id);else if(s?.k==='char')body=vCharEdit(s.id);else if(s?.k==='group')body=vGroup();
+  if(s?.k==='conv')body=vConv(s.id);else if(s?.k==='post')body=vPost(s.id);else if(s?.k==='char')body=vCharEdit(s.id);else if(s?.k==='diary')body=vDiary(s.id);else if(s?.k==='group')body=vGroup();
   else body={chats:vChats,feed:vFeed,chars:vChars,cycle:vCycle,me:vMe}[V.tab]();
   const tabs=s?'':`<nav class="tabs">${[['chats','聊天','chat'],['feed','動態','feed'],['cycle','健康','cal'],['chars','角色','chars'],['me','我','me']].map(([k,l,i])=>`<button class="${V.tab===k?'on':''}" data-act="tab" data-id="${k}" aria-label="${l}">${ic(i)}<span class="sr">${l}</span>${k==='chats'&&(careDue()||anyUnread())&&V.tab!=='chats'?'<span class="dot"></span>':''}</button>`).join('')}</nav>`;
   app.innerHTML=`${body.startsWith('<header')?'':''}${body.replace(/^(<header[\s\S]*?<\/header>)/,'$1<main>')}</main>${tabs}`;
@@ -915,15 +1021,15 @@ function render(){
   else window.scrollTo(0,y);
 }
 function grow(t){t.style.height='auto';t.style.height=Math.min(120,t.scrollHeight)+'px'}
-function go(sub,tab){V.pick=null;V.convMenu=null;V.charMenu=null;V.stkOpen=false;V.stkNew=null;V.sub=sub;if(tab)V.tab=tab;delArm=null;render.jump=sub?.k==='conv'?'bottom':'top';render();
+function go(sub,tab){V.pick=null;V.quote=null;V.convMenu=null;V.charMenu=null;V.stkOpen=false;V.stkNew=null;V.sub=sub;if(tab)V.tab=tab;delArm=null;render.jump=sub?.k==='conv'?'bottom':'top';render();
   if(sub?.k==='conv'){const cv=S.convs[sub.id];if(cv&&cv.unread){cv.unread=0;save('convs',sub.id);render()}const cvx=S.convs[sub.id];if(cvx&&cvx.type==='dm'&&careDueFor(cvx.members[0]))setTimeout(()=>replyDM(sub.id,true),500)}}
 
 /* ---------- actions ---------- */
 function sendMsg(){
   const id=V.sub.id,k='in-'+id,el=document.getElementById(k),t=(el?.value||'').trim();if(!t)return;
-  push(id,'me',t);drafts[k]='';save('convs',id);render();window.scrollTo(0,document.body.scrollHeight);
+  {const q=takeQuote(id);push(id,'me',t);if(q)S.convs[id].msgs[S.convs[id].msgs.length-1].q=q}drafts[k]='';save('convs',id);render();window.scrollTo(0,document.body.scrollHeight);
   lastAct=Date.now();
-  const cvo=S.convs[id];if(cvo&&cvo.type==='dm'&&S.pushq&&S.pushq.some(x=>x.cid===cvo.members[0])){S.pushq=S.pushq.filter(x=>x.cid!==cvo.members[0]);save();syncPush()}
+  const cvo=S.convs[id];if(cvo&&cvo.type==='dm'&&S.pushq&&S.pushq.some(x=>x.cid===cvo.members[0])){S.pushq=S.pushq.filter(x=>x.sp||x.cid!==cvo.members[0]);save();syncPush()}
   schedReply(id);
 }
 function schedReply(id,ms=1600){clearTimeout(timers[id]);timers[id]=setTimeout(()=>{delete timers[id];S.convs[id]?.type==='group'?replyGroup(id):replyDM(id)},ms)}
@@ -933,7 +1039,7 @@ function sendComment(){
 }
 const act={
   tab:id=>{V.tab=id;go(null)},back:()=>{formImg=undefined;formColor=null;['c-name','c-persona','c-ref','c-mem','c-pro','g-name'].forEach(k=>delete drafts[k]);Object.keys(drafts).filter(k=>k.startsWith('c-rel-')).forEach(k=>delete drafts[k]);go(null)},
-  openConv:id=>go({k:'conv',id}),openPost:id=>go({k:'post',id}),
+  openConv:id=>{go({k:'conv',id});const c=S.convs[id];if(c&&c.peek){const l=c.msgs[c.msgs.length-1];if(!l||Date.now()-l.ts>3*36e5)replyPeek(id,true)}},openPost:id=>go({k:'post',id}),
   newChar:()=>{formImg=undefined;formColor=null;go({k:'char',id:'new'})},editChar:id=>{formImg=undefined;formColor=null;go({k:'char',id})},
   dm:id=>{const cv=ensureDM(id);formImg=undefined;formColor=null;V.tab='chats';go({k:'conv',id:cv})},
   color:id=>{formColor=id;render()},rmImg:()=>{formImg='';render()},
@@ -944,12 +1050,12 @@ const act={
     const ref=($('#c-ref').value||'').trim();
     const mem=($('#c-mem').value||'').trim();
     const rel={...(old.rel||{})};document.querySelectorAll('[id^="c-rel-"]').forEach(el=>{const o=el.id.slice(6);const v=el.value.trim();if(v)rel[o]=v;else delete rel[o]});
-    const pf=$('#c-pf').value,cs=$('#c-cs').value,emo=$('#c-emo').value,gen=$('#c-gen').value;
-    const next={...old,name,persona,ref,mem,rel,color:formColor||COLORS[0],img:formImg||'',pro:$('#c-pro').checked,postFreq:pf,cSpeed:cs,emoji:emo,gender:gen};
+    const pf=$('#c-pf').value,cs=$('#c-cs').value,emo=$('#c-emo').value,gen=$('#c-gen').value,bday=(($('#c-bday')||{}).value||'');
+    const next={...old,name,persona,ref,mem,rel,color:formColor||COLORS[0],img:formImg||'',pro:$('#c-pro').checked,diary:!!($('#c-diary')||{checked:true}).checked,postFreq:pf,cSpeed:cs,emoji:emo,gender:gen,bday};
     if(old.postFreq!==pf)delete next.nextPostAt;
     if(new Blob([JSON.stringify(next)]).size>240000){toast('人設和參考對話加起來太長了，刪掉一些再存');return}
     S.chars[cid]=next;save('chars',cid);ensureDM(cid);if(pf==='auto'||cs==='auto')setTimeout(()=>inferAuto(cid),300);
-    ['c-name','c-persona','c-pro','c-ref','c-mem','c-pf','c-cs','c-emo','c-gen'].forEach(k=>delete drafts[k]);Object.keys(drafts).filter(k=>k.startsWith('c-rel-')).forEach(k=>delete drafts[k]);formImg=undefined;formColor=null;toast(id==='new'?`${name} 加入了 SynDay`:'已儲存');V.tab='chars';go(null);
+    ['c-name','c-persona','c-pro','c-ref','c-mem','c-pf','c-cs','c-emo','c-gen','c-bday','c-diary'].forEach(k=>delete drafts[k]);Object.keys(drafts).filter(k=>k.startsWith('c-rel-')).forEach(k=>delete drafts[k]);formImg=undefined;formColor=null;toast(id==='new'?`${name} 加入了 SynDay`:'已儲存');V.tab='chars';go(null);
   },
   charMenu:()=>{const id=V.sub&&V.sub.id;V.charMenu=V.charMenu===id?null:id;render()},
   charMenuNo:()=>{V.charMenu=null;render()},
@@ -962,9 +1068,9 @@ const act={
     if(S.profile.period){const pp=S.profile.period;if(Array.isArray(pp.by))pp.by=pp.by.filter(x=>x!==id);else if(pp.by===id)pp.by=[];save('profile','p')}
     toast(`已刪除 ${n}`);V.tab='chars';go(null);
   },
-  newGroup:()=>{grpSel=new Set();delete drafts['g-name'];go({k:'group'})},
-  gsel:(id,b)=>{b.checked?grpSel.add(id):grpSel.delete(id);render()},
-  makeGroup:()=>{if(grpSel.size<2)return;const id='g_'+nid();S.convs[id]={type:'group',title:(drafts['g-name']||'').trim(),members:[...grpSel],msgs:[],ts:Date.now()};save('convs',id);delete drafts['g-name'];go({k:'conv',id})},
+  newGroup:()=>{grpSel=new Set();grpPeek=false;delete drafts['g-name'];go({k:'group'})},
+  gsel:(id,b)=>{b.checked?grpSel.add(id):grpSel.delete(id);render()},gpeek:(id,b)=>{grpPeek=b.checked;render()},
+  makeGroup:()=>{if(grpSel.size<2)return;const id='g_'+nid();S.convs[id]={type:'group',title:(drafts['g-name']||'').trim(),members:[...grpSel],msgs:[],ts:Date.now(),...(grpPeek?{peek:true}:{})};save('convs',id);delete drafts['g-name'];go({k:'conv',id});if(grpPeek)replyPeek(id,false)},
   send:sendMsg,nudge:()=>{const id=V.sub.id;clearTimeout(timers[id]);delete timers[id];S.convs[id].type==='group'?replyGroup(id):replyDM(id)},
   comment:sendComment,genPost:()=>genPost(),
   post:async()=>{const t=(drafts['in-post']||'').trim();if((!t&&!postFiles.length)||busy.posting)return;
@@ -977,7 +1083,7 @@ const act={
   clrRef:()=>{drafts['c-ref']='';render()},
   stkTog:()=>{V.stkOpen=!V.stkOpen;V.stkEdit=false;render();if(V.stkOpen)window.scrollTo(0,document.body.scrollHeight)},
   stkTab:t=>{V.stkTab=t;V.stkEdit=false;render()},stkEditTog:()=>{V.stkEdit=!V.stkEdit;render()},
-  stkSend:id=>{const cv=V.sub&&V.sub.id;if(!cv||!S.convs[cv]||!stkById(id))return;pushStk(cv,'me',id);lastAct=Date.now();save('convs',cv);render();window.scrollTo(0,document.body.scrollHeight);schedReply(cv,2200)},
+  stkSend:id=>{const cv=V.sub&&V.sub.id;if(!cv||!S.convs[cv]||!stkById(id))return;{const q=takeQuote(cv);pushStk(cv,'me',id);if(q)S.convs[cv].msgs[S.convs[cv].msgs.length-1].q=q}lastAct=Date.now();save('convs',cv);render();window.scrollTo(0,document.body.scrollHeight);schedReply(cv,2200)},
   stkDel:id=>{S.stickers=myStk().filter(x=>x.id!==id);save();render()},
   stkCancel:()=>{V.stkNew=null;delete drafts['stk-name'];render()},
   stkSave:()=>{const n=(($('#stk-name')||{}).value||'').trim();if(!n){toast('幫貼圖取個名字，角色才知道它的意思');return}if(myStk().length>=40){toast('最多 40 張自己的貼圖');return}
@@ -1000,6 +1106,14 @@ const act={
   rmMeImg:()=>{S.profile.img='';save('profile','p');render()},
   pickMsg:i=>{const cv=V.sub&&V.sub.id;if(!cv)return;V.pick=(V.pick&&V.pick.cv===cv&&V.pick.i===+i)?null:{cv,i:+i};render()},
   pickNo:()=>{V.pick=null;render()},
+  quoteMsg:()=>{const pk=V.pick;if(!pk)return;V.quote={cv:pk.cv,i:pk.i};V.pick=null;render();setTimeout(()=>{const el=document.getElementById('in-'+pk.cv);if(el)el.focus()},50)},
+  quoteNo:()=>{V.quote=null;render()},
+  openDiary:id=>{V.charMenu=null;go({k:'diary',id})},
+  diaryNow:async id=>{if(await writeDiary(id,today(),false))toast('寫好了')},
+  peekMore:()=>{const id=V.sub&&V.sub.id;if(id)replyPeek(id,false)},
+  anAdd:()=>{const name=(($('#an-name')||{}).value||'').trim(),date=(($('#an-date')||{}).value||''),cid=(($('#an-cid')||{}).value||'all');if(!date){toast('選一下日期');return}
+    const P=S.profile;P.annivs=[...(P.annivs||[]),{id:nid(),name:name||'紀念日',date,cid}];['an-name','an-date','an-cid'].forEach(k=>delete drafts[k]);save('profile','p');toast('已新增');render()},
+  anDel:id=>{const P=S.profile;if(!confirm('確定要刪除這個紀念日嗎？'))return;P.annivs=(P.annivs||[]).filter(a=>a.id!==id);save('profile','p');render()},
   convMenu:()=>{V.pick=null;V.convMenu=V.convMenu===(V.sub&&V.sub.id)?null:(V.sub&&V.sub.id);render()},
   convMenuNo:()=>{V.convMenu=null;render()},
   clearConv:()=>{const id=(V.sub&&V.sub.id),c=S.convs[id];if(!c)return;if(!confirm(`確定要清空「${convTitle(c)}」的聊天紀錄嗎？\n\n刪掉就救不回來了，角色也會忘記之前聊過的內容（「他必須記得的事」不受影響）。`))return;c.msgs=[];c.unread=0;V.convMenu=null;save('convs',id);toast('已清空');render()},
@@ -1063,12 +1177,15 @@ const act={
 $('#lb').addEventListener('click',()=>$('#lb').classList.remove('on'));
 document.addEventListener('keydown',e=>{if(e.key==='Escape')$('#lb').classList.remove('on')});
 app.addEventListener('click',e=>{const b=e.target.closest('[data-act]');if(!b)return;if(b.dataset.act==='like'||b.dataset.act==='zoom'||b.dataset.act==='rmPhoto'||b.closest('.acts'))e.stopPropagation();const f=act[b.dataset.act];if(f){if(b.tagName!=='INPUT')e.preventDefault();f(b.dataset.id,b,e)}});
-app.addEventListener('input',e=>{const t=e.target;if(t.id==='c-pf'||t.id==='c-cs'||t.id==='c-emo'||t.id==='c-gen'){drafts[t.id]=t.value;return}if(t.id==='c-pro')drafts[t.id]=t.checked;else if(t.id==='imp')return;else if(t.id&&t.type!=='file'&&t.type!=='checkbox'&&t.tagName!=='SELECT')drafts[t.id]=t.value;if(t.closest('.inbar'))grow(t);
+app.addEventListener('input',e=>{const t=e.target;if(t.id==='c-pf'||t.id==='c-cs'||t.id==='c-emo'||t.id==='c-gen'){drafts[t.id]=t.value;return}if(t.id==='c-pro'||t.id==='c-diary')drafts[t.id]=t.checked;else if(t.id==='imp')return;else if(t.id&&t.type!=='file'&&t.type!=='checkbox'&&t.tagName!=='SELECT')drafts[t.id]=t.value;if(t.closest('.inbar'))grow(t);
   if(t.id==='c-mem'){const el=$('#c-mcount');if(el)el.textContent=cnt(t.value,MMAX)}
   if(t.id==='c-persona'){const el=$('#c-pcount');if(el)el.textContent=cnt(t.value,PMAX)}
   if(t.id==='c-ref'){const el=$('#c-rcount');if(el)el.textContent=cnt(t.value,RMAX)}
   if(t.id==='c-name'&&!formImg){const a=$('#c-av');if(a)a.textContent=(t.value||'?').slice(0,1)}});
 app.addEventListener('change',e=>{const t=e.target;
+  if(t.id==='me-bday'){S.profile.bday=t.value;save('profile','p');toast(t.value?'已記下你的生日':'已清除')}
+  if(t.id==='an-date'||t.id==='an-cid'){drafts[t.id]=t.value}
+  if(t.id==='c-bday'){drafts[t.id]=t.value}
   if(t.id==='me-gen'){S.profile.gender=t.value;save('profile','p');toast('已設定')}
   if(t.id==='me-name'){S.profile.me=t.value.trim();delete drafts['me-name'];save('profile','p')}
   if((t.id==='c-pfile'||t.id==='c-rfile')&&t.files[0]){const f=t.files[0],isP=t.id==='c-pfile',key=isP?'c-persona':'c-ref',max=isP?PMAX:RMAX;
