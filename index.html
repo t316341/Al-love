@@ -201,6 +201,7 @@ textarea:focus,input:focus,select:focus{outline:none;border-color:var(--ink)!imp
 .aiok b{font-weight:600}.aiok span{color:var(--mut);white-space:nowrap}
 .banner{margin:12px 16px 4px;border:1px solid var(--line);border-radius:14px;padding:14px 16px;display:flex;gap:12px;align-items:center;font-size:14px}
 .banner span{flex:1}
+.mwarn{display:block;margin:10px 0 2px;padding:12px 14px;border-radius:12px;background:rgba(255,48,64,.08);border:1px solid rgba(255,48,64,.35);color:var(--ink);font-size:13px;line-height:1.6;font-style:normal;font-weight:400}.mwarn b{display:block;color:#ff3040;margin-bottom:2px}
 </style></head><body>
 <div id="app"><div class="loading">SynDay 載入中…</div></div>
 <div id="toast" role="status"></div>
@@ -296,8 +297,10 @@ const anyUnread=()=>Object.values(S.convs).some(c=>c.unread>0&&c.members.some(m=
 const convTitle=c=>c.type==='dm'?chName(c.members[0]):(c.title||c.members.map(chName).join('、'));
 
 /* ---------- period ---------- */
+const pEnds=()=>{const p=S.profile.period;return p?(p.ends||(p.ends={})):{}};
+function endLen(st){const e=pEnds()[st];if(!e)return 0;const n=dn(e)-dn(st)+1;return n>=1&&n<=15?n:0}
 function periodLens(h){const lg=(S.profile.daylog)||{},out=[];
-  for(let i=0;i<h.length;i++){const s0=dn(h[i]),lim=i+1<h.length?Math.min(s0+12,dn(h[i+1])):s0+12;let lastF=-1,miss=0,seen=false;
+  for(let i=0;i<h.length;i++){{const el=endLen(h[i]);if(el){if(el>=2&&el<=10)out.push({start:h[i],len:el});continue}}const s0=dn(h[i]),lim=i+1<h.length?Math.min(s0+12,dn(h[i+1])):s0+12;let lastF=-1,miss=0,seen=false;
     for(let x=s0;x<lim;x++){const L=lg[ds(x)];if(L&&L.flow){lastF=x;seen=true;miss=0}else if(seen){if(++miss>1)break}else if(x-s0>=2)break}
     if(lastF>=0){const n=lastF-s0+1;if(n>=2&&n<=10)out.push({start:h[i],len:n})}}
   return out}
@@ -313,8 +316,9 @@ function per(){
   let len=Math.min(10,Math.max(2,+p.len||5)),lenAvg=false;{const pl=periodLens(h).slice(-6);if(pl.length){len=Math.round(pl.reduce((a,b)=>a+b.len,0)/pl.length);lenAvg=true}}
   const t=dn(today()),d=t-dn(last);if(d<0)return null;
   const next=dn(last)+cyc,to=next-t,adv=Math.max(0,Math.min(5,p.adv??2));
-  const kind=d<len?'in':to<0?'late':to===0?'due':to<=adv?'soon':'normal';
-  return{kind,day:d+1,to,last,next:ds(next),cyc,len,avg,lenAvg,hist:h,d};
+  const curLen=endLen(last)||Math.max(len,0),ended=!!endLen(last);
+  const kind=d<(ended?curLen:len)?'in':to<0?'late':to===0?'due':to<=adv?'soon':'normal';
+  return{kind,day:d+1,to,last,next:ds(next),cyc,len,avg,lenAvg,hist:h,d,ended};
 }
 function perText(st){const n=meName();return{in:`${n}現在是生理期第 ${st.day} 天`,soon:`${n}的生理期預計 ${st.to} 天後會來`,due:`${n}的生理期預計今天會來`,late:`${n}的生理期比預期晚了 ${-st.to} 天`,normal:''}[st.kind]}
 const FLOW=[['light','少'],['mid','中'],['heavy','多']],SYM=['經痛','腰痠','頭痛','脹氣','胸部脹痛','長痘痘','疲倦','失眠','想吃甜食','食慾變好'],MOOD=['開心','平靜','普通','低落','煩躁','焦慮','想哭'];
@@ -327,7 +331,7 @@ const hasLog=l=>!!(l&&((l.flow)||(l.sym&&l.sym.length)||l.mood||l.note||typeof l
 function logText(d){const l=dlog()[d];if(!hasLog(l))return'';const a=[];if(l.flow)a.push('經血量'+{light:'少',mid:'中',heavy:'多'}[l.flow]);if(l.sym&&l.sym.length)a.push('身體：'+l.sym.join('、'));if(l.mood)a.push('心情：'+l.mood);if(typeof l.water==='number'&&l.water>0){const h=hcfg();a.push(`喝了 ${l.water} 杯水（目標 ${h.goal} 杯）`)}{const sh=sleepHrs(l);if(sh!=null)a.push(`昨晚 ${l.sb} 睡、${l.sw} 起床，睡了 ${fmtH(sh)}`)}if(typeof l.wt==='number'&&hcfg().shareWt)a.push(`體重 ${l.wt} kg`);for(const it of hcfg().items){const v=l.cx&&l.cx[it.id];if(v===true)a.push(it.name+'：有');else if(typeof v==='number')a.push(`${it.name}：${v}${it.unit||''}`);else if(typeof v==='string'&&v)a.push(`${it.name}：${v.slice(0,80)}`)}if(l.note)a.push('她寫的備註：'+l.note.slice(0,200));return a.join('；')}
 function cycleMap(){
   const m={},p=S.profile.period;if(!p||!p.hist)return m;const st=per(),len=st?st.len:(+p.len||5);
-  for(const h of p.hist)for(let i=0;i<len;i++)m[ds(dn(h)+i)]='pp';
+  for(const h of p.hist){const L2=endLen(h)||len;for(let i=0;i<L2;i++)m[ds(dn(h)+i)]='pp'}
   for(const[d,v]of Object.entries(dlog()))if(v&&v.flow)m[d]='pp';
   if(st){const base=st.kind==='late'?dn(today()):dn(st.next);
     for(let k=0;k<4;k++){const s0=base+k*st.cyc;for(let i=0;i<st.len;i++){const d=ds(s0+i);if(!m[d])m[d]='pred'}
@@ -719,10 +723,10 @@ function vAI(){
   let h=`<div class="sec"><h2>AI 設定</h2>`;
   if(ok)h+=`<div class="aiok"><b>已連上 Gemini</b><span>金鑰 ••••${esc(AI.key.slice(-4))}</span></div>`;
   else h+=`<span class="free">免費・不用訂閱・不用信用卡</span><ol class="steps"><li><span>用 Google 帳號打開 <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">Google AI Studio</a></span></li><li><span>按「Create API key」（建立 API 金鑰）</span></li><li><span>按複製，回到這裡貼在下面，按「連線並儲存」</span></li></ol>`;
-  const sel=AI.model||DEF_LITE,fixed=[[DEF_LITE,'Flash-Lite 最新版（推薦・每天約 500 次）'],[DEF_FLASH,'Flash 最新版（比較聰明・每天約 20 次）']];
+  const sel=AI.model||DEF_LITE,fixed=[[DEF_LITE,'✅ 免費｜Flash-Lite 最新版（推薦・每天約 500 次）'],[DEF_FLASH,'✅ 免費｜Flash 最新版（比較聰明・每天約 20 次）']];
   h+=`<div class="form" style="padding:0"><label>${ok?'更換金鑰':'Gemini 金鑰'}<input type="password" id="ai-key" placeholder="貼上 AIza 開頭的金鑰" value="${esc(drafts['ai-key']??'')}" autocomplete="off" spellcheck="false"></label>
   <div class="btns"><button class="btn" data-act="aiSave" ${busy.ai?'disabled':''}>${busy.ai?'連線中…':ok?'更換並測試':'連線並儲存'}</button>${ok?'<button class="btn ghost" data-act="aiRemove">移除金鑰</button>':''}</div>
-  ${ok?`<label>角色用的模型 <em>Flash-Lite 反應快、免費次數多；Flash 演得比較細膩，但免費版一天只有約 20 次。</em><select id="ai-model">${fixed.map(([v,l])=>`<option value="${v}" ${sel===v?'selected':''}>${l}</option>`).join('')}${models&&models.length?`<optgroup label="進階（多數要付費，選錯可能無法使用或被收費）">${models.filter(m=>!/(transcribe|banana|image|tts|embed|audio|live|robotics|computer|vision|veo|imagen|lyria)/i.test(m.id+m.label)).map(m=>`<option value="${esc(m.id)}" ${sel===m.id?'selected':''}>${esc(m.label)}</option>`).join('')}</optgroup>`:''}</select></label>`:''}</div>
+  ${ok?`<label>角色用的模型 <em>Flash-Lite 反應快、免費次數多；Flash 演得比較細膩，但免費版一天只有約 20 次。</em><span class="mwarn"><b>⚠️ 只有最上面兩個是免費的</b>其他模型可能要付費。如果你的 Google 帳號有綁信用卡，選到付費模型會直接被收費；沒綁卡的話，角色會沒辦法回話。不確定就選第一個。</span><select id="ai-model">${fixed.map(([v,l])=>`<option value="${v}" ${sel===v?'selected':''}>${l}</option>`).join('')}${models&&models.length?`<optgroup label="⚠️ 以下可能要付費（有綁信用卡會被收費）">${models.filter(m=>!/(transcribe|banana|image|tts|embed|audio|live|robotics|computer|vision|veo|imagen|lyria)/i.test(m.id+m.label)).map(m=>`<option value="${esc(m.id)}" ${sel===m.id?'selected':''}>${esc(m.label)}</option>`).join('')}</optgroup>`:''}</select></label>`:''}</div>
   <p class="note">金鑰只存在這支手機的瀏覽器裡，不會傳給任何人。免費版的對話內容可能會被 Google 用來改進產品。</p></div>`;
   return h;
 }
@@ -787,7 +791,7 @@ function vCycle(){
   }
   if(st){const big={in:`經期第 ${st.day} 天`,soon:`還有 ${st.to} 天`,normal:`還有 ${st.to} 天`,due:'預計今天',late:`晚了 ${-st.to} 天`}[st.kind];
     const lbl={in:'經期中',soon:'快來了',normal:'距離下次經期',due:'下次經期',late:'比預期晚'}[st.kind];
-    h+=`<div class="sumc"><div><div class="lbl">${lbl}</div><div class="big">${big}</div><div class="subt">下次預計 ${md(st.next)} · 週期 ${st.cyc} 天${st.avg?'（平均）':''} · 經期 ${st.len} 天${st.lenAvg?'（平均）':''}</div></div>${st.kind!=='in'?'<button class="btn sm" data-act="perToday">今天來了</button>':''}</div>`}
+    h+=`<div class="sumc"><div><div class="lbl">${lbl}</div><div class="big">${big}</div><div class="subt">下次預計 ${md(st.next)} · 週期 ${st.cyc} 天${st.avg?'（平均）':''} · 經期 ${st.len} 天${st.lenAvg?'（平均）':''}</div></div>${st.kind!=='in'?'<button class="btn sm" data-act="perToday">今天來了</button>':st.ended?'':'<button class="btn sm" data-act="perEnd">今天結束了</button>'}</div>`}
   else h+=`<p class="note" style="padding:4px 20px 0">想記錄生理期的話，按右上角的齒輪填一次上次的日期，就能預測下一次，也能請角色在那幾天特別關心你。</p>`;
   const byL=byList(),by=byL[0]||'',busyBy=byL.filter(x=>busy['dm_'+x]),lc=p&&p.lastCare;
   if(busyBy.length&&(V.selDay||today())!==today())h+=busyBy.map(x=>`<div class="care">${av(x,'s')}<div class="body"><b>${esc(chName(x))}</b><div class="tx" style="color:var(--mut)">正在輸入…</div></div></div>`).join('');
@@ -818,12 +822,15 @@ function vCycle(){
       :it.type==='num'?`<h4>${esc(it.name)}</h4><div class="slp"><label style="flex:0 1 160px">${esc(it.unit||'數值')}<input type="number" class="cxv" data-id="${it.id}" step="any" inputmode="decimal" value="${typeof v==='number'?v:''}"></label></div>`
       :`<h4>${esc(it.name)}</h4><textarea class="cxv" data-id="${it.id}" style="min-height:52px">${esc(v||'')}</textarea>`}).join('')}
     <h4>想說的話</h4><textarea id="d-note" placeholder="今天的狀況、想記下來的事…">${esc(drafts['d-note']??L.note??'')}</textarea>
-    <div class="btns" style="margin-top:14px">${sel===t&&byL.length?`<button class="btn" data-act="tellChar" ${busyBy.length?'disabled':''}>${byL.length>1?'告訴大家':'告訴'+esc(chName(by))}</button>`:''}<button class="btn ghost" data-act="${isStart?'unStart':'startHere'}">${isStart?'取消「這天開始」':'這天開始經期'}</button></div>`;
+    <div class="btns" style="margin-top:14px">${sel===t&&byL.length?`<button class="btn" data-act="tellChar" ${busyBy.length?'disabled':''}>${byL.length>1?'告訴大家':'告訴'+esc(chName(by))}</button>`:''}<button class="btn ghost" data-act="${isStart?'unStart':'startHere'}">${isStart?'取消「這天開始」':'這天開始經期'}</button>${endBtn(sel)}</div>`;
   }
   h+=`</div>`+vTrends();
-  if(st&&st.hist.length)h+=`<div class="sec" style="border:0"><h2>經期開始日紀錄</h2><div class="hist" style="margin:0">${st.hist.slice(-8).reverse().map(d=>`<span>${md(d)}</span>`).join('')}</div></div>`;
+  if(st&&st.hist.length)h+=`<div class="sec" style="border:0"><h2>經期開始日紀錄</h2><div class="hist" style="margin:0">${st.hist.slice(-8).reverse().map(d=>`<span>${md(d)}${endLen(d)>1?'–'+md(pEnds()[d]):''}</span>`).join('')}</div></div>`;
   return h;
 }
+function startOf(d){const p=S.profile.period;if(!p||!p.hist)return null;const h=[...new Set(p.hist)].sort().filter(x=>x<=d);const s0=h[h.length-1];if(!s0)return null;const gap=dn(d)-dn(s0);return gap>=0&&gap<15?s0:null}
+function endBtn(d){const s0=startOf(d);if(!s0)return'';if(pEnds()[s0]===d)return'<button class="btn ghost" data-act="unEnd">取消「這天結束」</button>';if(d===s0)return'';return'<button class="btn ghost" data-act="endHere">這天結束經期</button>'}
+function setEnd(d){const s0=startOf(d);if(!s0){toast('這天前面沒有經期開始日');return false}pEnds()[s0]=d;const lg=dlog();for(let x=dn(d)+1;x<dn(s0)+15;x++){const k=ds(x);if(lg[k]&&lg[k].flow){delete lg[k].flow;tidy(k)}}return true}
 function vMe(){
   let h=head('我')+`<div class="sec"><h2>我的大頭貼和名字</h2><div class="form" style="padding:0"><div class="avedit">${av('me','l')}<div style="display:flex;flex-direction:column;gap:8px"><label class="btn ghost sm" style="display:inline-flex;flex-direction:row;align-items:center;cursor:pointer;font-size:14px">${S.profile.img?'換一張照片':'上傳照片'}<input type="file" id="me-file" accept="image/*" hidden></label>${S.profile.img?'<button class="btn ghost sm" data-act="rmMeImg">移除照片</button>':''}</div></div><label>角色們會這樣叫你<input type="text" id="me-name" value="${esc(drafts['me-name']??S.profile.me??'')}" maxlength="20" placeholder="例如：小花"></label><label>你的性別 <em>角色會用對的方式稱呼你（妳／你）</em><select id="me-gen">${[['f','女（她／妳）'],['m','男（他／你）'],['x','不指定（你）']].map(([v,l])=>`<option value="${v}" ${(S.profile.gender||'f')===v?'selected':''}>${l}</option>`).join('')}</select></label></div></div>`+vAI();
   const fq=S.profile.pro||'some';
@@ -953,7 +960,7 @@ const act={
   lgSym:v=>{const d=V.selDay||today(),L=dlog()[d]||(dlog()[d]={});const a=L.sym||[];L.sym=a.includes(v)?a.filter(x=>x!==v):[...a,v];tidy(d);save();render()},
   lgMood:v=>{const d=V.selDay||today(),L=dlog()[d]||(dlog()[d]={});L.mood=L.mood===v?'':v;tidy(d);save();render()},
   startHere:()=>{const d=V.selDay||today();if(!S.profile.period)S.profile.period={hist:[],cycle:28,len:5,by:[],adv:2,rem:{}};const p=S.profile.period;p.hist=p.hist||[];if(!p.hist.includes(d))p.hist=[...p.hist,d].sort().slice(-24);if(d===today()){p.lastRemind='';p.rem={}}save();toast(`已記錄 ${md(d)} 開始`);render()},
-  unStart:()=>{const d=V.selDay||today(),p=S.profile.period;if(!p)return;if(p.hist.length<=1){toast('至少要留一筆開始日，可以到齒輪裡修改');return}p.hist=p.hist.filter(x=>x!==d);save();render()},
+  unStart:()=>{const d=V.selDay||today(),p=S.profile.period;if(!p)return;if(p.hist.length<=1){toast('至少要留一筆開始日，可以到齒輪裡修改');return}p.hist=p.hist.filter(x=>x!==d);delete pEnds()[d];save();render()},
   tellChar:async()=>{const L0=byList();if(!L0.length)return;const el=$('#d-note');if(el){const L=dlog()[today()]||(dlog()[today()]={});L.note=el.value.trim();tidy(today());save()}
     if(!logText(today())){toast('先選一下今天的狀態');return}toast(L0.length>1?'已經告訴大家了':`已經告訴${chName(L0[0])}了`);
     const order=[...L0].sort(()=>Math.random()-.5);for(let i=0;i<order.length;i++){if(i)await sleep(4e3+Math.random()*12e3);ensureDM(order[i]);replyDM('dm_'+order[i],'log')}},
@@ -984,6 +991,9 @@ const act={
   wMinus:()=>{const d=V.selDay||today(),L=dlog()[d]||(dlog()[d]={});L.water=Math.max(0,(L.water||0)-1);tidy(d);save();render()},
   trend:v=>{V.trend=+v;render()},
   perEdit:()=>{V.perEdit=true;render()},perCancel:()=>{V.perEdit=false;render()},
+  perEnd:()=>{if(setEnd(today())){save('profile','p');toast('辛苦了，這次經期記錄好了');render()}},
+  endHere:()=>{if(setEnd(V.selDay||today())){save('profile','p');toast('已記錄結束日');render()}},
+  unEnd:()=>{const s0=startOf(V.selDay||today());if(s0){delete pEnds()[s0];save('profile','p');render()}},
   perToday:()=>{const p=S.profile.period;if(!p.hist.includes(today()))p.hist=[...p.hist,today()].sort().slice(-24);p.lastRemind='';p.rem={};save('profile','p');toast('已記錄，好好休息');render()},
   perUndo:()=>{const p=S.profile.period;p.hist=[...p.hist].sort().slice(0,-1);save('profile','p');render()},
 };
@@ -1017,7 +1027,7 @@ app.addEventListener('change',e=>{const t=e.target;
   if(t.id==='q-on'||t.id==='q-from'||t.id==='q-to'){const q=quietCfg();if(t.id==='q-on')q.on=t.checked;else q[t.id==='q-from'?'from':'to']=+t.value;S.profile.quiet=q;
     if(S.pushq){const now=Date.now();S.pushq=S.pushq.filter(x=>x.at<=now||!inQuiet(x.at))}save();render();syncPush();planPush()}
   if(t.id==='pro-freq'&&S.pushq){S.pushq=S.pushq.filter(x=>x.at<=Date.now())}
-  if(t.id==='ai-model'){AI.model=t.value;saveAI();noAIUntil=0;toast(t.value===DEF_LITE||t.value===DEF_FLASH?'已換模型':'注意：這個模型可能要付費。角色沒回話或被收費的話，請換回 Flash-Lite')}
+  if(t.id==='ai-model'){AI.model=t.value;saveAI();noAIUntil=0;if(t.value===DEF_LITE||t.value===DEF_FLASH)toast('已換模型');else if(confirm('這個模型可能要付費。\n\n如果你的 Google 帳號有綁信用卡，使用時會被收費。\n\n確定要換嗎？'))toast('已換模型，記得注意帳單喔');else{AI.model=DEF_LITE;saveAI();t.value=DEF_LITE;toast('已換回免費的 Flash-Lite')}}
   if(t.id==='imp'&&t.files[0]){t.files[0].text().then(x=>{const d=JSON.parse(x);if(!d||typeof d!=='object'||!d.chars)throw 0;impData=d;render()}).catch(()=>toast('這不是 SynDay 的備份檔'));t.value=''}
   if(t.id==='pro-freq'){S.profile.pro=t.value;save('profile','p');toast(t.value==='off'?'角色不會主動傳訊息了':'已設定');proCheck();syncPush();planPush()}
   if(t.id==='post-file'&&t.files.length){const room=4-postFiles.length;const fs=[...t.files].filter(f=>f.type.startsWith('image/')).slice(0,Math.max(0,room));
