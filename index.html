@@ -271,7 +271,7 @@ async function initStore(){
   try{navigator.storage&&navigator.storage.persist&&navigator.storage.persist()}catch(e){}
   render();
   if(PUSH.on&&'serviceWorker' in navigator)navigator.serviceWorker.register('sw.js').catch(()=>{});
-  if(lsGet('jiaoseq-push-slot',null)!==SLOT){lsSet('jiaoseq-push-slot',SLOT);lastSync='';setTimeout(()=>syncPush(true),800)}
+  lsSet('jiaoseq-push-slot',SLOT);if(PUSH.on)setTimeout(()=>syncPush(true),1500);
   deliverDue();
   setTimeout(()=>{proCheck();planPush();setTimeout(autoPost,4000);setTimeout(careRun,2500)},1500);setInterval(()=>{deliverDue();proCheck();planPush();autoPost();careRun()},60e3);setInterval(()=>{if(document.visibilityState==='visible')deliverComments()},10e3);deliverComments();
   document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'){deliverDue();deliverComments();proCheck();planPush();setTimeout(autoPost,3000);setTimeout(careRun,2000)}else{if(saveT)flush();syncPush()}});
@@ -495,8 +495,10 @@ async function syncPush(force){
   const now=Date.now();const items=(S.pushq||[]).filter(x=>x.at>now&&S.chars[x.cid]).map(x=>({at:x.at,title:chName(x.cid),body:x.t.join('\n').slice(0,180),tag:x.id,url:'./'}));
   for(const[pid,p]of Object.entries(S.posts))for(const x of(p.pend||[]))if(x.at>now+60e3&&S.chars[x.f]&&(p.a==='me'||x.to==='me'))items.push({at:x.at,title:`${chName(x.f)} 回覆了你`,body:x.t.slice(0,180),tag:'c'+pid.slice(-6)+Math.round(x.at/1000)%100000,url:'./'});
   items.sort((a,b)=>a.at-b.at);items.splice(12);
-  const body=JSON.stringify({sub:PUSH.sub,items});if(!force&&body===lastSync)return;
-  try{const r=await fetch(PUSH.url+'/schedule',{method:'POST',headers:{'Content-Type':'text/plain'},body,keepalive:body.length<60000});if(r.ok)lastSync=body}catch(e){}
+  const key=JSON.stringify(items.map(x=>[x.at,x.tag,x.body]));
+  if(!force&&lastSync){try{const prev=JSON.parse(lastSync).filter(x=>x[0]>now);if(JSON.stringify(prev)===key)return}catch(e){}}
+  const body=JSON.stringify({sub:PUSH.sub,items});
+  try{const r=await fetch(PUSH.url+'/schedule',{method:'POST',headers:{'Content-Type':'text/plain'},body,keepalive:body.length<60000});if(r.ok)lastSync=key}catch(e){}
 }
 function b64uToBytes(s){s=s.replace(/-/g,'+').replace(/_/g,'/');while(s.length%4)s+='=';const b=atob(s),a=new Uint8Array(b.length);for(let i=0;i<b.length;i++)a[i]=b.charCodeAt(i);return a}
 async function enablePush(){
