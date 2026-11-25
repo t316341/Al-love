@@ -6,14 +6,20 @@ self.addEventListener('push', (e) => {
   let d = {};
   try { d = e.data ? e.data.json() : {}; } catch (err) { d = { body: e.data ? e.data.text() : '' }; }
   const title = d.title || 'SynDay';
-  const opts = {
-    body: d.body || '有人傳訊息給你',
-    tag: d.tag || 'synday',
-    icon: 'icon-192.png',
-    badge: 'icon-192.png',
-    data: { url: d.url || './' },
-  };
-  e.waitUntil(self.registration.showNotification(title, opts));
+  const tag = d.tag || 'synday';
+  e.waitUntil((async () => {
+    // 有角色頭像的話，通知圖示改用角色頭像（Android 等支援的裝置）
+    let icon = 'icon-192.png';
+    const m = /^av:([^:]+):/.exec(tag);
+    if (m) { try { const map = await getAvatars(); if (map && map[m[1]]) icon = map[m[1]]; } catch (err) {} }
+    await self.registration.showNotification(title, {
+      body: d.body || '有人傳訊息給你',
+      tag,
+      icon,
+      badge: 'icon-192.png',
+      data: { url: d.url || './' },
+    });
+  })());
 });
 
 self.addEventListener('notificationclick', (e) => {
@@ -27,3 +33,19 @@ self.addEventListener('notificationclick', (e) => {
     if (self.clients.openWindow) await self.clients.openWindow(url);
   })());
 });
+
+// 從 App 的資料庫讀出角色頭像（App 開著時會先存好縮圖）
+function getAvatars() {
+  return new Promise((res) => {
+    const r = indexedDB.open('jiaoseq', 1);
+    r.onupgradeneeded = () => { r.result.createObjectStore('kv'); };
+    r.onerror = () => res(null);
+    r.onsuccess = () => {
+      try {
+        const q = r.result.transaction('kv').objectStore('kv').get('pushav');
+        q.onsuccess = () => res(q.result || null);
+        q.onerror = () => res(null);
+      } catch (err) { res(null); }
+    };
+  });
+}
