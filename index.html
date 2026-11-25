@@ -342,6 +342,9 @@ function giftLine(t){const m=String(t).match(/^[【\[［(（]?\s*禮物\s*[:：]
 function pushLine(cv,f,t,ts){const k=stkLine(t);if(k){pushStk(cv,f,k.id)}else if(/^[【\[［(（]?\s*貼圖\s*[:：]/.test(t))return false;else{const p=payLine(t),g=!p&&giftLine(t);if(p||g){push(cv,f,'');const m=S.convs[cv].msgs[S.convs[cv].msgs.length-1];if(p)m.pay={...p,st:'wait'};else m.gift={...g,st:'wait'}}else push(cv,f,t)}
   if(ts){const c=S.convs[cv],m=c.msgs[c.msgs.length-1];m.ts=ts}return true}
 function giftsCtx(ch){const g=(ch.got||[]).slice(-6);return g.length?`\n（${meName()}之前送過你的東西：${g.map(x=>`${x.e}${x.n}（${md(dOf(x.ts))}）`).join('、')}。自然的時候可以提起或用上，例如戴著她送的圍巾。）`:''}
+const ASK_RE=/轉帳|轉(給)?我|給我錢|打錢|匯(款|錢)|紅包|零用錢|包養|贊助|資助|借(我)?錢|給我.{0,4}(錢|塊|元)|(買|送)(給)?我|我想要.{0,10}(禮物|包|手錶|錶|戒指|項鍊|車|房子|鞋|衣服|口紅|香水)|請我(吃|喝)|禮物呢|要禮物|想要禮物/;
+function askedGift(c){const ms=c.msgs;let i=ms.length-1;const out=[];while(i>=0&&ms[i].f==='me'&&out.length<6){out.push(ms[i]);i--}return out.some(m=>m.t&&ASK_RE.test(m.t))}
+function giftAsk(){const me=meName();return`\n（${me}剛剛開口跟你要錢或要東西。要不要給、給多少、怎麼給，完全照你的人設和你們的關係決定：大方或很寵她的人可能直接給，甚至給更多；小氣、嘴硬、傲嬌的可能拒絕、討價還價、少給、或嘴上拒絕但還是偷偷給；窮的人可能給不起但想別的辦法；覺得她在開玩笑的可以回嘴。不一定要給。\n如果決定給，把其中一則訊息換成下面其中一種格式，獨立一行：\n・送禮物：【禮物：emoji 禮物名稱｜一句話】\n・轉帳：【轉帳：金額｜備註】\n金額要符合你的經濟狀況和個性。一次最多一樣。）`}
 function giftHint(boost){if(Math.random()>(boost?0.55:0.07))return'';const me=meName();return`\n（這次可以選擇送${me}東西，但只有在情境自然、符合你個性時才送，不自然就完全不要送：例如${me}心情不好、累了、想寵她、慶祝、道歉、想她。送的方式是把其中一則訊息換成下面其中一種格式，獨立一行：\n・送禮物：【禮物：emoji 禮物名稱｜一句話】例如【禮物：🧋 半糖珍奶｜今天辛苦了】\n・轉帳：【轉帳：金額｜備註】例如【轉帳：520｜去吃好吃的】\n禮物要具體、有你的風格，金額要完全照你的人設決定：有錢人可以很大方（甚至幾十萬、幾百萬），學生或窮的角色就小額，小氣的人就更少。一次最多送一樣。）`}
 function payHTML(m,cv,i){const me=m.f==='me',x=m.pay||m.gift,isPay=!!m.pay;const title=isPay?`${me?'轉帳給 '+esc(chName(S.convs[cv].members[0]))+' ':''}${money(x.amt)}`:esc(x.n);
   const st=me?(isRead(S.convs[cv],m,i)?'對方已收下':'已送出'):x.st==='got'?'已收下':'';
@@ -542,7 +545,7 @@ async function replyDM(cv,mode,atTs){
     :pro?`${clock}${last?`距離上一則訊息已經過了 ${ago(last.ts)}。`:'你們還沒有聊過天。'}你想主動傳訊息給${meName()}：可以分享你正在做的事、突然想到對方、問候、碎碎念、或接續之前的話題，要符合角色個性和現在的時間。不要每次都問「在幹嘛」。${pt?`（背景資訊，自然時才提：${pt}）`:''}`
     :`${clock}${pt?`（背景資訊，只有在自然的時候才提起，不要每次都提：${pt}）`:''}`;
   const pim=(pro||care||logm)?[]:pendImgs(c),nB=(care||logm)?pickCount(3):pickCount(4);
-  const prompt=`你正在扮演一個角色，在類似 LINE 的聊天軟體裡和「${meName()}」私訊聊天。\n\n${persona(ch,true)}\n\n${ctx}\n\n最近的對話：\n${hist(c)}${imgNote(pim.length)}\n\n現在換「${ch.name}」傳訊息。${nB===1?'這次只傳 1 則訊息（一行）。':`這次連續傳 ${nB} 則訊息，每則一行，像真人一則一則送出。`}每則長短可以不一樣，有時一兩個字、有時一兩句。只輸出訊息本身，不要加名字、引號或說明。${RULE()}${(care||logm)?'':stkHint(ch)}${giftHint(!!dayCtx(cid,nw.getTime())&&specials(today()).some(e=>e.kind!=='char'&&e.cids.includes(cid)))}${giftsCtx(ch)}`;
+  const prompt=`你正在扮演一個角色，在類似 LINE 的聊天軟體裡和「${meName()}」私訊聊天。\n\n${persona(ch,true)}\n\n${ctx}\n\n最近的對話：\n${hist(c)}${imgNote(pim.length)}\n\n現在換「${ch.name}」傳訊息。${nB===1?'這次只傳 1 則訊息（一行）。':`這次連續傳 ${nB} 則訊息，每則一行，像真人一則一則送出。`}每則長短可以不一樣，有時一兩個字、有時一兩句。只輸出訊息本身，不要加名字、引號或說明。${RULE()}${(care||logm)?'':stkHint(ch)}${(care||logm)?'':askedGift(c)?giftAsk():giftHint(!!dayCtx(cid,nw.getTime())&&specials(today()).some(e=>e.kind!=='char'&&e.cids.includes(cid)))}${giftsCtx(ch)}`;
   if(gen){try{const t=await ask(prompt,pim,true);return lines(t,[ch.name]).slice(0,nB).map(l=>l.t).filter(x=>x&&!/^貼圖[:：]/.test(x))}catch(e){return null}}
   if(pro){ch.lastPro=Date.now();save('chars',cid)}
   try{const t=await ask(prompt,pim,pro);const ls=lines(t,[ch.name]).slice(0,nB);
@@ -921,7 +924,7 @@ async function writeDiary(id,d,quiet){
     cc.diaries=[...(cc.diaries||[]).filter(e=>e.d!==d),{d,t:t.slice(0,1200),ts:Date.now()}].sort((a,b)=>a.d<b.d?-1:1).slice(-30);cc.dNew=true;save('chars',id);return true}
   catch(e){return false}finally{delete busy['d_'+id];render()}}
 let diaryBusy=false;
-async function diaryRun(){if(diaryBusy||!aiReady()||Date.now()<noAIUntil)return;const hr=new Date().getHours(),t=today(),y=ds(dn(t)-1);
+async function diaryRun(){if(S.profile.diaryOff||diaryBusy||!aiReady()||Date.now()<noAIUntil)return;const hr=new Date().getHours(),t=today(),y=ds(dn(t)-1);
   for(const[id,c]of Object.entries(S.chars)){if(c.diary===false)continue;const has=new Set((c.diaries||[]).map(e=>e.d));
     const d=hr>=21?(has.has(t)?null:t):(has.has(y)?null:y);if(!d)continue;
     if(d===y&&(c.created||0)>new Date(t+'T00:00:00').getTime())continue;
@@ -1119,7 +1122,7 @@ function endBtn(d){const s0=startOf(d);if(!s0)return'';if(pEnds()[s0]===d)return
 function setEnd(d){const s0=startOf(d);if(!s0){toast('這天前面沒有經期開始日');return false}pEnds()[s0]=d;const lg=dlog();for(let x=dn(d)+1;x<dn(s0)+15;x++){const k=ds(x);if(lg[k]&&lg[k].flow){delete lg[k].flow;tidy(k)}}return true}
 function vMe(){
   let h=head('我')+`<div class="sec"><h2>我的大頭貼和名字</h2><div class="form" style="padding:0"><div class="avedit">${av('me','l')}<div style="display:flex;flex-direction:column;gap:8px"><label class="btn ghost sm" style="display:inline-flex;flex-direction:row;align-items:center;cursor:pointer;font-size:14px">${S.profile.img?'換一張照片':'上傳照片'}<input type="file" id="me-file" accept="image/*" hidden></label>${S.profile.img?'<button class="btn ghost sm" data-act="rmMeImg">移除照片</button>':''}</div></div><label>角色們會這樣叫你<input type="text" id="me-name" value="${esc(drafts['me-name']??S.profile.me??'')}" maxlength="20" placeholder="例如：小花"></label><label>你的性別 <em>角色會用對的方式稱呼你（妳／你）</em><select id="me-gen">${[['f','女（她／妳）'],['m','男（他／你）'],['x','不指定（你）']].map(([v,l])=>`<option value="${v}" ${(S.profile.gender||'f')===v?'selected':''}>${l}</option>`).join('')}</select></label></div></div>`+vAI();
-  h+=`<div class="sec"><h2>🗓️ 角色每日行程</h2><label class="chk"><input type="checkbox" id="me-sched" ${S.profile.schedOff?'':'checked'}>讓角色每天依人設排行程</label><p class="note" style="margin:6px 0 0">關掉後就看不到行程，角色也不會照行程過日子。想只關掉某個角色，到「角色」裡取消勾選。</p></div>`;
+  h+=`<div class="sec"><h2>角色的日常</h2><label class="chk"><input type="checkbox" id="me-sched" ${S.profile.schedOff?'':'checked'}>🗓️ 讓角色每天依人設排行程</label><label class="chk"><input type="checkbox" id="me-diary" ${S.profile.diaryOff?'':'checked'}>📔 讓角色每天晚上寫日記</label><p class="note" style="margin:6px 0 0">關掉後就不會再產生，也不會用到 AI 次數；已經寫好的日記會留著。想只關掉某個角色，到「角色」裡取消勾選。</p></div>`;
   h+=`<div class="sec"><h2>💰 錢包與禮物</h2><div style="display:flex;align-items:center;gap:12px"><div class="wbal" style="flex:1;margin:0">${money(wallet().bal)}</div><button class="btn ghost sm" data-act="openWallet">紀錄和收藏</button></div></div>`;
   {const P=S.profile,an=P.annivs||[],ids=Object.keys(S.chars);
   h+=`<div class="sec"><h2>生日和紀念日</h2><div class="form" style="padding:0"><label>我的生日 <em>當天角色會傳訊息祝你生日快樂，有開通知的話零點就會收到</em><input type="date" id="me-bday" value="${esc(P.bday||'')}"></label></div>
@@ -1364,6 +1367,7 @@ app.addEventListener('input',e=>{const t=e.target;if(t.id==='c-pf'||t.id==='c-cs
 let timeDirty=false;
 app.addEventListener('focusout',e=>{const t=e.target;if(!timeDirty||(t.id!=='d-sb'&&t.id!=='d-sw'))return;setTimeout(()=>{const a=document.activeElement;if(timeDirty&&!(a&&(a.id==='d-sb'||a.id==='d-sw'))){timeDirty=false;render()}},400)});
 app.addEventListener('change',e=>{const t=e.target;
+  if(t.id==='me-diary'){S.profile.diaryOff=!t.checked;save('profile','p');render()}
   if(t.id==='me-sched'){S.profile.schedOff=!t.checked;save('profile','p');render()}
   if(t.id==='me-bday'){S.profile.bday=t.value;save('profile','p');toast(t.value?'已記下你的生日':'已清除')}
   if(t.id==='an-date'||t.id==='an-cid'){drafts[t.id]=t.value}
