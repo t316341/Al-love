@@ -11,7 +11,7 @@ self.addEventListener('push', (e) => {
     // 有角色頭像的話，通知圖示改用角色頭像（Android 等支援的裝置）
     let icon = 'icon-192.png';
     const m = /^av:([^:]+):/.exec(tag);
-    if (m) { try { const map = await getAvatars(); if (map && map[m[1]]) icon = map[m[1]]; } catch (err) {} }
+    if (m) { try { const map = await Promise.race([getAvatars(), new Promise((r) => setTimeout(() => r(null), 1500))]); if (map && map[m[1]]) icon = map[m[1]]; } catch (err) {} }
     await self.registration.showNotification(title, {
       body: d.body || '有人傳訊息給你',
       tag,

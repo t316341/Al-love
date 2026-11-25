@@ -345,7 +345,9 @@ function giftsCtx(ch){const g=(ch.got||[]).slice(-6);return g.length?`\n（${meN
 const ASK_RE=/轉帳|轉(給)?我|給我錢|打錢|匯(款|錢)|紅包|零用錢|包養|贊助|資助|借(我)?錢|給我.{0,4}(錢|塊|元)|(買|送)(給)?我|我想要.{0,10}(禮物|包|手錶|錶|戒指|項鍊|車|房子|鞋|衣服|口紅|香水)|請我(吃|喝)|禮物呢|要禮物|想要禮物/;
 function askedGift(c){const ms=c.msgs;let i=ms.length-1;const out=[];while(i>=0&&ms[i].f==='me'&&out.length<6){out.push(ms[i]);i--}return out.some(m=>m.t&&ASK_RE.test(m.t))}
 function giftAsk(){const me=meName();return`\n（${me}剛剛開口跟你要錢或要東西。要不要給、給多少、怎麼給，完全照你的人設和你們的關係決定：大方或很寵她的人可能直接給，甚至給更多；小氣、嘴硬、傲嬌的可能拒絕、討價還價、少給、或嘴上拒絕但還是偷偷給；窮的人可能給不起但想別的辦法；覺得她在開玩笑的可以回嘴。不一定要給。\n如果決定給，把其中一則訊息換成下面其中一種格式，獨立一行：\n・送禮物：【禮物：emoji 禮物名稱｜一句話】\n・轉帳：【轉帳：金額｜備註】\n金額要符合你的經濟狀況和個性。一次最多一樣。）`}
-function giftHint(boost){if(Math.random()>(boost?0.55:0.07))return'';const me=meName();return`\n（這次可以選擇送${me}東西，但只有在情境自然、符合你個性時才送，不自然就完全不要送：例如${me}心情不好、累了、想寵她、慶祝、道歉、想她。送的方式是把其中一則訊息換成下面其中一種格式，獨立一行：\n・送禮物：【禮物：emoji 禮物名稱｜一句話】例如【禮物：🧋 半糖珍奶｜今天辛苦了】\n・轉帳：【轉帳：金額｜備註】例如【轉帳：520｜去吃好吃的】\n禮物要具體、有你的風格，金額要完全照你的人設決定：有錢人可以很大方（甚至幾十萬、幾百萬），學生或窮的角色就小額，小氣的人就更少。一次最多送一樣。）`}
+function giftHint(boost,c){const me=meName();let lastG=0;if(c)for(let k=c.msgs.length-1;k>=0;k--){const m=c.msgs[k];if(m.f!=='me'&&(m.pay||m.gift)){lastG=m.ts;break}}
+  const since=lastG?Date.now()-lastG:Infinity;if(!boost&&since<6*36e5)return'';
+  return`\n（關於送東西：要不要主動送${me}禮物或轉帳給她，完全照你的人設和你們現在的關係決定。很大方、很寵她、愛表現、熱戀中的人會比較常送，也送得比較大手筆；小氣、冷淡、嘴硬、還不熟、或正在吵架的人很少送，甚至從來不送。${lastG?`你上次送她東西是 ${dur(since)}前。`:'你還沒送過她東西。'}${boost?'今天是特別的日子，比平常更有理由送。':'大部分的時候不用送，只有在你這個人在這個情境下真的會送時才送（例如她累了、心情不好、想寵她、慶祝、道歉、想她）。'}\n如果要送，把其中一則訊息換成下面其中一種格式，獨立一行：\n・送禮物：【禮物：emoji 禮物名稱｜一句話】例如【禮物：🧋 半糖珍奶｜今天辛苦了】\n・轉帳：【轉帳：金額｜備註】例如【轉帳：520｜去吃好吃的】\n禮物要具體、有你的風格，金額要完全照你的經濟狀況和個性。一次最多送一樣。）`}
 function payHTML(m,cv,i){const me=m.f==='me',x=m.pay||m.gift,isPay=!!m.pay;const title=isPay?`${me?'轉帳給 '+esc(chName(S.convs[cv].members[0]))+' ':''}${money(x.amt)}`:esc(x.n);
   const st=me?(isRead(S.convs[cv],m,i)?'對方已收下':'已送出'):x.st==='got'?'已收下':'';
   return`<div class="gcard ${isPay?'pay':''} ${me?'mine':''}"><div class="ge">${isPay?'💸':esc(x.e||'🎁')}</div><div class="gt"><small>${isPay?(me?'轉帳':'轉帳給你'):(me?'送出的禮物':'送你的禮物')}</small><b>${title}</b>${x.note?`<span>${esc(x.note)}</span>`:''}</div>${!me&&x.st!=='got'?`<button class="btn sm" data-act="takeGift" data-id="${cv}|${i}">收下</button>`:`<em>${st}</em>`}</div>`}
@@ -545,7 +547,7 @@ async function replyDM(cv,mode,atTs){
     :pro?`${clock}${last?`距離上一則訊息已經過了 ${ago(last.ts)}。`:'你們還沒有聊過天。'}你想主動傳訊息給${meName()}：可以分享你正在做的事、突然想到對方、問候、碎碎念、或接續之前的話題，要符合角色個性和現在的時間。不要每次都問「在幹嘛」。${pt?`（背景資訊，自然時才提：${pt}）`:''}`
     :`${clock}${pt?`（背景資訊，只有在自然的時候才提起，不要每次都提：${pt}）`:''}`;
   const pim=(pro||care||logm)?[]:pendImgs(c),nB=(care||logm)?pickCount(3):pickCount(4);
-  const prompt=`你正在扮演一個角色，在類似 LINE 的聊天軟體裡和「${meName()}」私訊聊天。\n\n${persona(ch,true)}\n\n${ctx}\n\n最近的對話：\n${hist(c)}${imgNote(pim.length)}\n\n現在換「${ch.name}」傳訊息。${nB===1?'這次只傳 1 則訊息（一行）。':`這次連續傳 ${nB} 則訊息，每則一行，像真人一則一則送出。`}每則長短可以不一樣，有時一兩個字、有時一兩句。只輸出訊息本身，不要加名字、引號或說明。${RULE()}${(care||logm)?'':stkHint(ch)}${(care||logm)?'':askedGift(c)?giftAsk():giftHint(!!dayCtx(cid,nw.getTime())&&specials(today()).some(e=>e.kind!=='char'&&e.cids.includes(cid)))}${giftsCtx(ch)}`;
+  const prompt=`你正在扮演一個角色，在類似 LINE 的聊天軟體裡和「${meName()}」私訊聊天。\n\n${persona(ch,true)}\n\n${ctx}\n\n最近的對話：\n${hist(c)}${imgNote(pim.length)}\n\n現在換「${ch.name}」傳訊息。${nB===1?'這次只傳 1 則訊息（一行）。':`這次連續傳 ${nB} 則訊息，每則一行，像真人一則一則送出。`}每則長短可以不一樣，有時一兩個字、有時一兩句。只輸出訊息本身，不要加名字、引號或說明。${RULE()}${(care||logm)?'':stkHint(ch)}${(care||logm)?'':askedGift(c)?giftAsk():giftHint(!!dayCtx(cid,nw.getTime())&&specials(today()).some(e=>e.kind!=='char'&&e.cids.includes(cid)),c)}${giftsCtx(ch)}`;
   if(gen){try{const t=await ask(prompt,pim,true);return lines(t,[ch.name]).slice(0,nB).map(l=>l.t).filter(x=>x&&!/^貼圖[:：]/.test(x))}catch(e){return null}}
   if(pro){ch.lastPro=Date.now();save('chars',cid)}
   try{const t=await ask(prompt,pim,pro);const ls=lines(t,[ch.name]).slice(0,nB);
@@ -572,7 +574,7 @@ function skipQuiet(ts){let t=ts,i=0;while(inQuiet(t)&&i<30){const d=new Date(t);
 async function genPro(cid,at){
   const ch=S.chars[cid],c=S.convs['dm_'+cid];if(!ch||!c)return null;
   const d=new Date(at),last=c.msgs[c.msgs.length-1];const st=per(),hn=healthNote(),pt=(st?perText(st):'')+(hn?`。${hn}`:''),nP=pickCount(2);
-  const prompt=`你正在扮演一個角色，在類似 LINE 的聊天軟體裡和「${meName()}」私訊。\n\n${persona(ch,true)}\n\n這則訊息會在星期${WD[d.getDay()]} ${pad(d.getHours())}:${pad(d.getMinutes())}（${meName()}那邊的時間）傳出。${dayCtx(cid,at)}${schedCtx(cid,at)}${myReadNote(c,at)}${last?`那時距離你們上一則訊息大約過了 ${Math.max(1,Math.round((at-last.ts)/36e5))} 小時。`:'你們還沒聊過天。'}你突然想主動傳訊息給${meName()}：可以分享你那時正在做的事、突然想到她、問候、碎碎念、或接續之前的話題，要符合角色個性和那個時間點。不要每次都問「在幹嘛」，也不要提到「通知」或「排程」。${pt?`（背景資訊，自然時才提：${pt}）`:''}\n\n最近的對話：\n${hist(c)}\n\n現在換「${ch.name}」傳訊息。${nP===1?'只傳 1 則':'傳 2 則，每則一行'}，簡短。只輸出訊息本身，不要加名字或引號。${RULE()}${giftHint(false)}${giftsCtx(ch)}`;
+  const prompt=`你正在扮演一個角色，在類似 LINE 的聊天軟體裡和「${meName()}」私訊。\n\n${persona(ch,true)}\n\n這則訊息會在星期${WD[d.getDay()]} ${pad(d.getHours())}:${pad(d.getMinutes())}（${meName()}那邊的時間）傳出。${dayCtx(cid,at)}${schedCtx(cid,at)}${myReadNote(c,at)}${last?`那時距離你們上一則訊息大約過了 ${Math.max(1,Math.round((at-last.ts)/36e5))} 小時。`:'你們還沒聊過天。'}你突然想主動傳訊息給${meName()}：可以分享你那時正在做的事、突然想到她、問候、碎碎念、或接續之前的話題，要符合角色個性和那個時間點。不要每次都問「在幹嘛」，也不要提到「通知」或「排程」。${pt?`（背景資訊，自然時才提：${pt}）`:''}\n\n最近的對話：\n${hist(c)}\n\n現在換「${ch.name}」傳訊息。${nP===1?'只傳 1 則':'傳 2 則，每則一行'}，簡短。只輸出訊息本身，不要加名字或引號。${RULE()}${giftHint(false,c)}${giftsCtx(ch)}`;
   const t=await ask(prompt,null,true);return lines(t,[ch.name]).map(l=>l.t).filter(Boolean).slice(0,nP);
 }
 /* ---------- 紀念日和生日 ---------- */
@@ -608,7 +610,7 @@ async function specialPlan(){
 async function genSpecial(cid,at,ev){
   const ch=S.chars[cid];if(!ch)return null;const d=new Date(at),me=meName(),c=S.convs['dm_'+cid];
   const what=ev.kind==='me'?`今天是${me}的生日，你要傳訊息祝${me}生日快樂。`:`今天是「${ev.name}」${ev.yrs>0?`（第 ${ev.yrs} 年）`:''}，${ev.all?`這天對${me}很重要`:`這是你和${me}之間重要的日子`}，你要傳訊息紀念這一天。`;
-  const prompt=`你正在扮演一個角色，在類似 LINE 的聊天軟體裡和「${me}」私訊。\n\n${persona(ch,true)}\n\n最近的對話：\n${c?hist(c,12):'（還沒有對話）'}\n\n這則訊息會在${d.getMonth()+1}月${d.getDate()}日 ${pad(d.getHours())}:${pad(d.getMinutes())}（${me}那邊的時間）傳出。${what}要用你自己的個性和說話方式，${d.getHours()<2?'可以是剛過零點、搶第一個的祝福，':''}真誠、有你們之間的感覺，不要像賀卡範本。傳 2 到 4 則訊息，每則一行，格式「${ch.name}：內容」。${RULE()}${giftHint(true).replace(/把其中一則訊息換成/,'把其中一則訊息換成「'+ch.name+'：」加上')}`;
+  const prompt=`你正在扮演一個角色，在類似 LINE 的聊天軟體裡和「${me}」私訊。\n\n${persona(ch,true)}\n\n最近的對話：\n${c?hist(c,12):'（還沒有對話）'}\n\n這則訊息會在${d.getMonth()+1}月${d.getDate()}日 ${pad(d.getHours())}:${pad(d.getMinutes())}（${me}那邊的時間）傳出。${what}要用你自己的個性和說話方式，${d.getHours()<2?'可以是剛過零點、搶第一個的祝福，':''}真誠、有你們之間的感覺，不要像賀卡範本。傳 2 到 4 則訊息，每則一行，格式「${ch.name}：內容」。${RULE()}${giftHint(true,c).replace(/把其中一則訊息換成/,'把其中一則訊息換成「'+ch.name+'：」加上')}`;
   const t=await ask(prompt,null,true);return lines(t,[ch.name]).map(l=>l.t).filter(Boolean).slice(0,4);
 }
 async function planPush(){
@@ -938,26 +940,28 @@ function knows(a,b){const A=S.chars[a],B=S.chars[b];if(!A||!B)return false;if(((
 function schedAt(c,ts){const it=schedOf(c,dOf(ts));if(!it||!it.length)return null;const d=new Date(ts),m=d.getHours()*60+d.getMinutes(),mins=x=>{const[a,b]=x.t.split(':').map(Number);return a*60+b};
   let cur=null,next=null;for(const x of it){if(mins(x)<=m)cur=x;else{next=x;break}}if(!cur)cur={t:'00:00',e:'😴',a:'睡覺'};return{cur,next}}
 function schedCtx(cid,ts){const c=S.chars[cid],r=c&&schedAt(c,ts||Date.now());if(!r)return'';return`（依照你今天的行程，這時候你正在：${r.cur.a}${r.next?`；下一件事是 ${r.next.t} ${r.next.a}`:''}。說話要符合你正在做的事，但不用每次都講出來。）`}
-async function makeSched(id,quiet,force){const c=S.chars[id];if(!schedEnabled(c)||schedBusy[id]||!aiReady()||Date.now()<noAIUntil)return false;if(!force&&schedOf(c))return true;
+async function makeSched(id,quiet,force,retry){const c=S.chars[id];if(!schedEnabled(c)||schedBusy[id]||!aiReady()||Date.now()<noAIUntil)return false;if(!force&&schedOf(c))return true;
   schedBusy[id]=1;if(V.sub&&V.sub.k==='sched')render();
   const d=new Date(),me=meName(),dm=S.convs['dm_'+id],prevD=(c.diaries||[]).slice(-1)[0];
   const ids=Object.keys(S.chars).filter(x=>x!==id),friends=ids.filter(x=>knows(id,x)),strangers=ids.filter(x=>!knows(id,x));
-  const fr=friends.map(f=>{const it=schedOf(S.chars[f]);return it?`・${S.chars[f].name}今天的行程：${it.map(x=>`${x.t} ${x.a}${x.w&&x.w.length?`（和${x.w.join('、')}）`:''}`).join('；')}`:`・${S.chars[f].name}（今天的行程還沒排）`}).join('\n');
+  const fr=friends.map(f=>{const it=retry?null:schedOf(S.chars[f]);return it?`・${S.chars[f].name}今天的行程：${it.map(x=>`${x.t} ${x.a}${x.w&&x.w.length?`（和${x.w.join('、')}）`:''}`).join('；')}`:`・${S.chars[f].name}（今天的行程還沒排）`}).join('\n');
   const busyMe=ids.flatMap(o=>(schedOf(S.chars[o])||[]).filter(x=>(x.w||[]).includes(me)).map(x=>x.t)).sort();
-  const others=`${friends.length?`\n\n他認識、有關係的角色：\n${fr}\n可以跟他們一起做事，但要對得上：如果對方的行程已經排好，只能排對方行程裡也有的一起行動，或對方那個時間有空、合理的事；對方行程寫了要跟${c.name}一起做的事，${c.name}的行程一定要有，時間一樣。`:''}${strangers.length?`\n\n${c.name}不認識 ${strangers.map(x=>S.chars[x].name).join('、')}，行程裡絕對不能出現他們。`:''}${busyMe.length?`\n\n${me}今天在這些時間已經有別的安排：${[...new Set(busyMe)].join('、')}（前後大約兩小時）。跟${me}見面、約會、一起做事的行程不能排在這些時段；傳訊息、想她這種不用見面的可以。`:''}`;
+  const others=`${friends.length?`\n\n他認識、有關係的角色：\n${fr}\n⚠️ 上面對方的行程只是讓你避免衝突用的，絕對不要照抄。${c.name}和他們是不同的人，有自己的工作、習慣和生活節奏，大部分時間各做各的。一起做的事一天最多 1～2 件，而且要真的符合你們的關係才排，沒有也很正常；要一起的話，時間要和對方行程對得上。`:''}${strangers.length?`\n\n${c.name}不認識 ${strangers.map(x=>S.chars[x].name).join('、')}，行程裡絕對不能出現他們。`:''}${busyMe.length?`\n\n${me}今天在這些時間已經有別的安排：${[...new Set(busyMe)].join('、')}（前後大約兩小時）。跟${me}見面、約會、一起做事的行程不能排在這些時段；傳訊息、想她這種不用見面的可以。`:''}`;
   const prompt=`你要幫一個角色排出他今天一整天的真實行程。\n\n${persona(c,true)}\n\n今天是${d.getMonth()+1}月${d.getDate()}日 星期${WD[d.getDay()]}${[0,6].includes(d.getDay())?'（週末）':''}。${dayCtx(id)}${prevD?`\n他昨天的日記：${prevD.t.slice(0,200)}`:''}\n\n最近和${me}的對話（如果有約好的事，例如今晚要一起吃飯，要排進去）：\n${dm?hist(dm,16):'（沒有）'}\n\n依照他的身分、職業、個性、生活習慣，排出從起床到睡覺的行程，8 到 12 項，要具體、有生活感、符合他的人設（上班族、學生、富二代、殺手、偶像的一天都不一樣），週末和平日要不一樣。可以有一兩件跟${me}有關的事（例如想打給她、幫她買東西），但不要整天都繞著她。${others}\n\n每項一行，格式：HH:MM｜emoji｜做什麼（15 字以內）｜和誰\n「和誰」寫這件事有誰一起（只能寫 ${me}${friends.length?'、'+friends.map(f=>S.chars[f].name).join('、'):''}），自己一個人或跟路人就寫「無」。\n時間由早到晚排列，只輸出行程。`;
   try{const t=await ask(prompt,null,quiet),items=[];
     const okW=new Set([me,...friends.map(f=>S.chars[f].name)]);
     for(const ln of String(t).split('\n')){const m=ln.match(/(\d{1,2})[:：](\d{2})\s*[｜|]\s*([^｜|]*?)\s*[｜|]\s*([^｜|]+?)\s*(?:[｜|]\s*(.*))?$/);if(!m)continue;const h=Math.min(23,+m[1]),mi=Math.min(59,+m[2]);
       const w=(m[5]||'').split(/[、,，\s和與]+/).map(x=>x.trim()).filter(x=>okW.has(x));let a=m[4].trim().slice(0,30);
       if(strangers.some(x=>a.includes(S.chars[x].name)))continue;items.push({t:`${pad(h)}:${pad(mi)}`,e:(m[3].trim()||'•').slice(0,4),a,...(w.length?{w}:{})})}
-    items.sort((a,b)=>a.t<b.t?-1:1);if(items.length<3)throw 0;const cc=S.chars[id];if(!cc)return false;cc.sched={d:today(),items};save('chars',id);
-    for(const x of items)for(const nm of(x.w||[])){const f=friends.find(f=>S.chars[f].name===nm),F=f&&S.chars[f],fit=F&&schedOf(F);if(!fit)continue;
-      const tm=v=>{const[a,b]=v.split(':').map(Number);return a*60+b};if(fit.some(y=>Math.abs(tm(y.t)-tm(x.t))<=30&&((y.w||[]).includes(cc.name)||y.a.includes(cc.name))))continue;
+    items.sort((a,b)=>a.t<b.t?-1:1);if(items.length<3)throw 0;
+    const sim=f=>{const fi=schedOf(S.chars[f])||[];if(!fi.length)return 0;const set=new Set(fi.map(x=>x.a.replace(/\s/g,'')));return items.filter(x=>set.has(x.a.replace(/\s/g,''))||fi.some(y=>y.t===x.t&&y.e===x.e)).length/items.length};
+    if(friends.some(f=>sim(f)>0.4)){if(!retry){delete schedBusy[id];return makeSched(id,quiet,true,true)}throw 0}
+    const cc=S.chars[id];if(!cc)return false;cc.sched={d:today(),items};save('chars',id);
+    const pairN={};for(const x of items)for(const nm of(x.w||[])){const f=friends.find(f=>S.chars[f].name===nm),F=f&&S.chars[f],fit=F&&schedOf(F);if(!fit||!x.a.includes(nm)||(pairN[f]=(pairN[f]||0)+1)>2)continue;
+      const tm=v=>{const[a,b]=v.split(':').map(Number);return a*60+b};if(fit.some(y=>Math.abs(tm(y.t)-tm(x.t))<=40))continue;
       const ow=[...new Set([cc.name,...x.w.filter(n=>n!==nm)])];fit.push({t:x.t,e:x.e,a:x.a.includes(nm)?x.a.split(nm).join(cc.name):`和${cc.name}：${x.a}`,w:ow});fit.sort((a,b)=>a.t<b.t?-1:1);save('chars',f)}
     {const own=cc.sched.items,tm=v=>{const[a,b]=v.split(':').map(Number);return a*60+b};
-      for(const f of friends){const F=S.chars[f];for(const y of(schedOf(F)||[]))if((y.w||[]).includes(cc.name)&&!own.some(z=>Math.abs(tm(z.t)-tm(y.t))<=30&&((z.w||[]).includes(F.name)||z.a.includes(F.name)))){
-        own.filter(z=>Math.abs(tm(z.t)-tm(y.t))<30).forEach(z=>own.splice(own.indexOf(z),1));
+      for(const f of friends){const F=S.chars[f];let k=0;for(const y of(schedOf(F)||[]))if((y.w||[]).includes(cc.name)&&y.a.includes(cc.name)&&k<2&&!own.some(z=>Math.abs(tm(z.t)-tm(y.t))<=40)){k++;
         own.push({t:y.t,e:y.e,a:y.a.includes(cc.name)?y.a.split(cc.name).join(F.name):`和${F.name}：${y.a}`,w:[...new Set([F.name,...y.w.filter(n=>n!==cc.name)])]})}}
       own.sort((a,b)=>a.t<b.t?-1:1);save('chars',id)}
     return true}
@@ -971,7 +975,8 @@ function vSched(id){const c=S.chars[id];if(!c||!schedEnabled(c))return vChars();
   <div class="btns" style="padding:16px 20px"><button class="btn sm ghost" data-act="schedRe" data-id="${id}" ${schedBusy[id]?'disabled':''}>${schedBusy[id]?'排行程中…':'重排今天的行程'}</button></div>`;
   return h}
 let schedRunBusy=false;
-async function schedRun(){if(schedRunBusy||!aiReady()||Date.now()<noAIUntil||new Date().getHours()<5)return;if(S.profile.schedOff)return;const id=Object.keys(S.chars).find(id=>schedEnabled(S.chars[id])&&!schedOf(S.chars[id])&&!schedBusy[id]);if(!id)return;schedRunBusy=true;try{await makeSched(id,true)}finally{schedRunBusy=false}}
+function schedDedupe(){const ids=Object.keys(S.chars).filter(id=>schedOf(S.chars[id]));for(let i=0;i<ids.length;i++)for(let j=i+1;j<ids.length;j++){const A=schedOf(S.chars[ids[i]]),B=schedOf(S.chars[ids[j]]);if(!A||!B)continue;const set=new Set(A.map(x=>x.a.replace(/\s/g,'')));if(B.filter(x=>set.has(x.a.replace(/\s/g,''))).length/B.length>0.5){delete S.chars[ids[j]].sched;save('chars',ids[j])}}}
+async function schedRun(){schedDedupe();if(schedRunBusy||!aiReady()||Date.now()<noAIUntil||new Date().getHours()<5)return;if(S.profile.schedOff)return;const id=Object.keys(S.chars).find(id=>schedEnabled(S.chars[id])&&!schedOf(S.chars[id])&&!schedBusy[id]);if(!id)return;schedRunBusy=true;try{await makeSched(id,true)}finally{schedRunBusy=false}}
 function vCharEdit(id){
   const c=id==='new'?{name:'',persona:'',color:COLORS[Object.keys(S.chars).length%COLORS.length]}:S.chars[id];if(!c)return vChars();
   if(formColor===null)formColor=c.color;if(formImg===undefined)formImg=c.img||'';
