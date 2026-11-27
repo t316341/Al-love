@@ -854,7 +854,7 @@ function vConv(id){
   if(c.type==='dm'&&document.visibilityState==='visible'){const nw=Date.now();let ch=false;for(let i=c.msgs.length-1;i>=0&&i>=c.msgs.length-60;i--){const m=c.msgs[i];if(m.f==='me')continue;if(m.rd)break;if(m.ts<=nw){m.rd=nw;ch=true}}if(ch)save('convs',id)}
   const nowS=c.type==='dm'&&schedAt(S.chars[c.members[0]],Date.now());
   let h=subHead(esc(convTitle(c))+(c.type==='group'?`<small>${c.peek?'👀 偷看中':c.members.length+1+' 人'}</small>`:nowS?`<small data-act="openSched" data-id="${c.members[0]}" style="cursor:pointer">${esc(schedIcon(nowS.cur))} ${esc(nowS.cur.a)}</small>`:''),`<button class="icon" data-act="convMenu" aria-label="聊天室設定">${ic('more')}</button>`);
-  if(V.convMenu===id)h+=`<div class="pick"><p class="q" style="font-style:normal">${esc(convTitle(c))}</p><div class="btns">${c.type==='dm'&&schedEnabled(S.chars[c.members[0]])?`<button class="btn sm ghost" data-act="openSched" data-id="${c.members[0]}">🗓️ 他今天的行程</button>`:''}<button class="btn sm ghost" data-act="clearConv">清空聊天紀錄</button>${c.type==='group'?'<button class="btn sm" data-act="delConv" style="background:var(--acc);color:#fff">刪除群組</button>':''}<button class="btn sm ghost" data-act="convMenuNo">取消</button></div>${c.type==='dm'?'<p class="note" style="margin:10px 0 0">私訊聊天室會一直保留，想完全移除可以到「角色」刪除角色。</p>':''}</div>`;
+  if(V.convMenu===id)h+=`<div class="pick"><p class="q" style="font-style:normal">${esc(convTitle(c))}</p><div class="btns">${c.type==='dm'&&schedEnabled(S.chars[c.members[0]])?`<button class="btn sm ghost" data-act="openSched" data-id="${c.members[0]}">🗓️ 他今天的行程</button>`:''}${c.type==='dm'?`<button class="btn sm ghost" data-act="openSpend" data-id="${c.members[0]}">💳 他的消費紀錄</button>`:''}<button class="btn sm ghost" data-act="clearConv">清空聊天紀錄</button>${c.type==='group'?'<button class="btn sm" data-act="delConv" style="background:var(--acc);color:#fff">刪除群組</button>':''}<button class="btn sm ghost" data-act="convMenuNo">取消</button></div>${c.type==='dm'?'<p class="note" style="margin:10px 0 0">私訊聊天室會一直保留，想完全移除可以到「角色」刪除角色。</p>':''}</div>`;
   let out='',prevF=null,prevDay='';
   const lastMe=c.msgs.map(m=>m.f).lastIndexOf('me'),replied=c.msgs.slice(lastMe+1).length>0;
   c.msgs.forEach((m,i)=>{const day=new Date(m.ts).toDateString();if(day!==prevDay){out+=`<div class="daysep">${new Date(m.ts).getMonth()+1}月${new Date(m.ts).getDate()}日</div>`;prevDay=day;prevF=null}
@@ -988,13 +988,41 @@ async function makeSched(id,quiet,force,retry){const c=S.chars[id];if(!schedEnab
       own.sort((a,b)=>a.t<b.t?-1:1);save('chars',id)}
     return true}
   catch(e){if(!quiet)toast('行程排不出來，等一下再試');return false}finally{delete schedBusy[id];render()}}
+/* ---------- 角色消費紀錄 ---------- */
+const spBusyC={};
+function realSpend(id,d){const c=S.convs['dm_'+id];if(!c)return[];const me=meName();return c.msgs.filter(m=>m.f===id&&(m.pay||m.gift)&&dOf(m.ts)===d).map(m=>{const t=new Date(m.ts);return{t:`${pad(t.getHours())}:${pad(t.getMinutes())}`,e:m.pay?'💸':(m.gift.e||'🎁'),n:m.pay?`轉帳給${me}`:`送${me}：${m.gift.n}`,amt:m.pay?m.pay.amt:(m.gift.p||0),note:(m.pay||m.gift).note||'',real:1}})}
+async function makeSpend(id,quiet,force){const c=S.chars[id];if(!c||spBusyC[id]||!aiReady()||Date.now()<noAIUntil)return false;const d=today();if(!force&&c.spend&&c.spend[d])return true;
+  spBusyC[id]=1;render();
+  const now=new Date(),it=schedOf(c),me=meName(),real=realSpend(id,d);
+  const prompt=`你要幫一個角色寫出他今天一整天的消費紀錄（像信用卡、行動支付的帳單）。\n\n${persona(c,true)}\n\n今天是${now.getMonth()+1}月${now.getDate()}日 星期${WD[now.getDay()]}。${dayCtx(id)}${it?`\n他今天的行程：${it.map(x=>x.t+' '+x.a).join('、')}`:''}${real.length?`\n他今天已經${real.map(x=>x.n+(x.amt?` ${x.amt} 元`:'')).join('、')}（這些不用再寫）`:''}\n\n依照他的身分、經濟狀況、個性和生活習慣，寫出 4 到 10 筆消費，時間從早到晚、要跟行程對得上。有錢人可以花得很兇，學生或窮的就很省，小氣的會精打細算；可以有一兩筆藏著小心思的（例如偷偷買了${me}喜歡的東西、訂了餐廳），但不要整天都跟${me}有關。${S.profile.spendSpicy?`可以有 0 到 2 筆帶點成人、曖昧意味的消費（例如保險套、情趣內衣、成人用品、汽車旅館休息、為了跟${me}約會偷偷準備的東西），要符合他的個性和你們的關係，用暗示、幽默的方式寫店名和備註，不要寫露骨細節；不符合人設就不要硬加。`:''}金額用新台幣整數。\n每筆一行，格式：HH:MM｜emoji｜店家或項目（15 字以內）｜金額｜一句小備註（選填）\n只輸出消費紀錄。`;
+  try{const t=await ask(prompt,null,quiet),items=[];
+    for(const ln of String(t).split('\n')){const m=ln.match(/(\d{1,2})[:：](\d{2})\s*[｜|]\s*([^｜|]*?)\s*[｜|]\s*([^｜|]+?)\s*[｜|]\s*\$?\s*([\d,，.]+)\s*(萬|千|[kK])?[^｜|]*(?:[｜|]\s*(.*))?$/);if(!m)continue;
+      let amt=+m[5].replace(/[,，]/g,'')*({'萬':1e4,'千':1e3,'k':1e3,'K':1e3}[m[6]]||1);if(!(amt>=0))continue;
+      const x={t:`${pad(Math.min(23,+m[1]))}:${pad(Math.min(59,+m[2]))}`,e:(m[3]||'').trim(),n:m[4].trim().slice(0,30),amt:Math.round(amt),note:(m[7]||'').trim().slice(0,40)};if(!x.e||!EMOJI_RE.test(x.e))x.e=schedIcon({a:x.n});else x.e=x.e.match(EMOJI_RE)[1];items.push(x)}
+    if(items.length<2)throw 0;items.sort((a,b)=>a.t<b.t?-1:1);
+    const cc=S.chars[id];if(!cc)return false;cc.spend={...(cc.spend||{}),[d]:items};for(const k of Object.keys(cc.spend))if(k<ds(dn(d)-6))delete cc.spend[k];save('chars',id);return true}
+  catch(e){if(!quiet)toast('消費紀錄產生不出來，等一下再試');return false}finally{delete spBusyC[id];render()}}
+function vSpend(id){const c=S.chars[id];if(!c)return vChars();const d=today();
+  if(!(c.spend&&c.spend[d])&&!spBusyC[id])setTimeout(()=>makeSpend(id,false),50);
+  const nowT=`${pad(new Date().getHours())}:${pad(new Date().getMinutes())}`;
+  const days=[...new Set([d,...Object.keys(c.spend||{})])].sort().reverse().slice(0,7);
+  let h=subHead(`${esc(c.name)} 的消費紀錄`);
+  h+=`<div class="sec" style="padding-top:14px"><p class="note" style="margin:0">依照${esc(c.name)}的人設和行程產生，還沒到的時間不會先出現。標著「給你」的是他真的轉給你、送你的。</p><label class="chk" style="margin-top:10px"><input type="checkbox" id="spend-spicy" ${S.profile.spendSpicy?'checked':''}>🔞 可以出現成人小彩蛋（18 歲以上）</label></div>`;
+  for(const day of days){let it=[...((c.spend||{})[day]||[]),...realSpend(id,day)].sort((a,b)=>a.t<b.t?-1:1);if(day===d)it=it.filter(x=>x.real||x.t<=nowT);
+    const tot=it.reduce((s,x)=>s+(x.amt||0),0),[y,m,dd]=day.split('-').map(Number);
+    h+=`<div class="sec" style="padding-bottom:4px"><h2 style="display:flex;justify-content:space-between"><span>${day===d?'今天':`${m} 月 ${dd} 日`}</span><span style="font-weight:600">${money(tot)}</span></h2>`;
+    if(day===d&&!(c.spend&&c.spend[d]))h+=`<p class="note" style="margin:0 0 12px">${spBusyC[id]?'正在整理今天的帳單…':'還沒有紀錄'}</p>`;
+    else if(!it.length)h+=`<p class="note" style="margin:0 0 12px">${day===d?'到現在還沒花錢':'沒有紀錄'}</p>`;
+    h+=`<div class="txl">${it.map(x=>`<div class="tx"><span style="font-size:20px;width:28px;text-align:center">${esc(x.e)}</span><span class="t">${esc(x.n)}${x.real?' <b style="font-size:11px;font-weight:600;color:#fff;background:var(--acc);border-radius:20px;padding:1px 7px;vertical-align:1px">給你</b>':''}<small>${x.t}${x.note?' · '+esc(x.note):''}</small></span><b>${x.amt?'−'+money(x.amt):''}</b></div>`).join('')}</div></div>`}
+  h+=`<div class="btns" style="padding:16px 20px"><button class="btn sm ghost" data-act="spendRe" data-id="${id}" ${spBusyC[id]?'disabled':''}>${spBusyC[id]?'整理中…':'重新產生今天的紀錄'}</button></div>`;
+  return h}
 function vSched(id){const c=S.chars[id];if(!c||!schedEnabled(c))return vChars();const it=schedOf(c),r=schedAt(c,Date.now());
   if(!it&&!schedBusy[id])setTimeout(()=>makeSched(id,false),50);
   let h=subHead(`${esc(c.name)} 的今天`);
   h+=`<div class="sec" style="padding-top:14px"><p class="note" style="margin:0">依照${esc(c.name)}的人設排的今日行程，每天會換。他聊天、發文時也會照這個行程過日子。</p></div>`;
   if(!it)h+=`<p class="note" style="padding:20px">${schedBusy[id]?'正在排今天的行程…':'還沒有行程'}</p>`;
   else h+=`<div class="tl">${it.map(x=>`<div class="ti ${r&&r.cur===x?'now':''}"><span class="tt">${x.t}</span><span class="te">${esc(schedIcon(x))}</span><span class="ta">${esc(x.a)}${r&&r.cur===x?'<b>現在</b>':''}</span></div>`).join('')}</div>
-  <div class="btns" style="padding:16px 20px"><button class="btn sm ghost" data-act="schedRe" data-id="${id}" ${schedBusy[id]?'disabled':''}>${schedBusy[id]?'排行程中…':'重排今天的行程'}</button></div>`;
+  <div class="btns" style="padding:16px 20px"><button class="btn sm ghost" data-act="openSpend" data-id="${id}">💳 看他的消費紀錄</button><button class="btn sm ghost" data-act="schedRe" data-id="${id}" ${schedBusy[id]?'disabled':''}>${schedBusy[id]?'排行程中…':'重排今天的行程'}</button></div>`;
   return h}
 let schedRunBusy=false;
 function schedDedupe(){const ids=Object.keys(S.chars).filter(id=>schedOf(S.chars[id]));for(let i=0;i<ids.length;i++)for(let j=i+1;j<ids.length;j++){const A=schedOf(S.chars[ids[i]]),B=schedOf(S.chars[ids[j]]);if(!A||!B)continue;const set=new Set(A.map(x=>x.a.replace(/\s/g,'')));if(B.filter(x=>set.has(x.a.replace(/\s/g,''))).length/B.length>0.5){delete S.chars[ids[j]].sched;save('chars',ids[j])}}}
@@ -1009,7 +1037,7 @@ function vCharEdit(id){
   if(formColor===null)formColor=c.color;if(formImg===undefined)formImg=c.img||'';
   const nm=drafts['c-name']??c.name,ps=drafts['c-persona']??c.persona,rf=drafts['c-ref']??(c.ref||''),mmv=drafts['c-mem']??(c.mem||'');
   const pv=formImg&&IMG.test(formImg)?`<div class="av l" id="c-av" style="background-image:url('${formImg}')"></div>`:`<div class="av l" id="c-av">${esc((nm||'?').slice(0,1))}</div>`;
-  return subHead(id==='new'?'新增角色':'編輯角色',id!=='new'?`<button class="icon" data-act="charMenu" aria-label="角色設定">${ic('more')}</button>`:'')+(id!=='new'&&V.charMenu===id?`<div class="pick"><p class="q" style="font-style:normal">${esc(chName(id))}</p><div class="btns">${schedEnabled(S.chars[id])?`<button class="btn sm ghost" data-act="openSched" data-id="${id}">🗓️ 今天的行程</button>`:''}<button class="btn sm ghost" data-act="openDiary" data-id="${id}">📔 看日記</button><button class="btn sm" data-act="delChar2" data-id="${id}" style="background:var(--acc);color:#fff">刪除角色</button><button class="btn sm ghost" data-act="charMenuNo">取消</button></div><p class="note" style="margin:10px 0 0">他的私訊、發過的貼文會一起刪掉，群組裡也會把他移出。刪掉就救不回來。</p></div>`:'')+`<div class="form"><div class="avedit">${pv}<div style="display:flex;flex-direction:column;gap:8px"><label class="btn ghost sm" style="display:inline-flex;flex-direction:row;align-items:center;cursor:pointer;font-size:14px">上傳頭像<input type="file" id="c-file" accept="image/*" hidden></label>${formImg?'<button class="btn ghost sm" data-act="rmImg">移除頭像</button>':''}</div></div>
+  return subHead(id==='new'?'新增角色':'編輯角色',id!=='new'?`<button class="icon" data-act="charMenu" aria-label="角色設定">${ic('more')}</button>`:'')+(id!=='new'&&V.charMenu===id?`<div class="pick"><p class="q" style="font-style:normal">${esc(chName(id))}</p><div class="btns">${schedEnabled(S.chars[id])?`<button class="btn sm ghost" data-act="openSched" data-id="${id}">🗓️ 今天的行程</button>`:''}<button class="btn sm ghost" data-act="openSpend" data-id="${id}">💳 消費紀錄</button><button class="btn sm ghost" data-act="openDiary" data-id="${id}">📔 看日記</button><button class="btn sm" data-act="delChar2" data-id="${id}" style="background:var(--acc);color:#fff">刪除角色</button><button class="btn sm ghost" data-act="charMenuNo">取消</button></div><p class="note" style="margin:10px 0 0">他的私訊、發過的貼文會一起刪掉，群組裡也會把他移出。刪掉就救不回來。</p></div>`:'')+`<div class="form"><div class="avedit">${pv}<div style="display:flex;flex-direction:column;gap:8px"><label class="btn ghost sm" style="display:inline-flex;flex-direction:row;align-items:center;cursor:pointer;font-size:14px">上傳頭像<input type="file" id="c-file" accept="image/*" hidden></label>${formImg?'<button class="btn ghost sm" data-act="rmImg">移除頭像</button>':''}</div></div>
   <div><div style="font-weight:700;font-size:14px;margin-bottom:6px">代表色</div><div class="sw">${COLORS.map(col=>`<button data-act="color" data-id="${col}" class="${col===formColor?'on':''}" style="background:${col}" aria-label="顏色"></button>`).join('')}</div></div>
   <label>名字<input type="text" id="c-name" value="${esc(nm)}" maxlength="20" placeholder="角色的名字" ${isLocked(c)?'disabled':''}></label>
   ${isLocked(c)?`<div class="aiok" style="flex-direction:column;align-items:flex-start;gap:4px"><b>🔒 作者鎖定的角色</b><span style="white-space:normal;line-height:1.6">人設由作者「${esc(c.lockBy||'作者')}」提供，看不到也不能修改${c.lockTo?`・授權給：${esc(c.lockTo)}`:''}。<br>你可以照常聊天，也可以在下面寫你們之間的事。</span></div>`:`<label>人設 <em>越詳細，角色越像他自己。可以直接貼上，或從檔案匯入（.txt、.md、Word .docx）。<br>請使用你自己創作，或作者同意使用的角色設定。</em><textarea id="c-persona" maxlength="${PMAX}" placeholder="${esc(TPL)}">${esc(ps)}</textarea></label>
@@ -1184,7 +1212,7 @@ function render(){
   const f=document.activeElement,fid=f&&f.id,sel=f&&f.selectionStart;
   const y=window.scrollY,chatBefore=document.querySelectorAll('.chat .m,.cm').length;
   const s=V.sub;let body;
-  if(s?.k==='conv')body=vConv(s.id);else if(s?.k==='post')body=vPost(s.id);else if(s?.k==='char')body=vCharEdit(s.id);else if(s?.k==='diary')body=vDiary(s.id);else if(s?.k==='wallet')body=vWallet();else if(s?.k==='sched')body=vSched(s.id);else if(s?.k==='group')body=vGroup();
+  if(s?.k==='conv')body=vConv(s.id);else if(s?.k==='post')body=vPost(s.id);else if(s?.k==='char')body=vCharEdit(s.id);else if(s?.k==='diary')body=vDiary(s.id);else if(s?.k==='wallet')body=vWallet();else if(s?.k==='sched')body=vSched(s.id);else if(s?.k==='spend')body=vSpend(s.id);else if(s?.k==='group')body=vGroup();
   else body={chats:vChats,feed:vFeed,chars:vChars,cycle:vCycle,me:vMe}[V.tab]();
   const tabs=s?'':`<nav class="tabs">${[['chats','聊天','chat'],['feed','動態','feed'],['cycle','健康','cal'],['chars','角色','chars'],['me','我','me']].map(([k,l,i])=>`<button class="${V.tab===k?'on':''}" data-act="tab" data-id="${k}" aria-label="${l}">${ic(i)}<span class="sr">${l}</span>${k==='chats'&&(careDue()||anyUnread())&&V.tab!=='chats'?'<span class="dot"></span>':''}</button>`).join('')}</nav>`;
   app.innerHTML=`${body.startsWith('<header')?'':''}${body.replace(/^(<header[\s\S]*?<\/header>)/,'$1<main>')}</main>${tabs}`;
@@ -1316,6 +1344,8 @@ const act={
   openWallet:()=>go({k:'wallet'}),
   openSched:id=>{V.charMenu=null;V.convMenu=null;go({k:'sched',id})},
   schedRe:id=>makeSched(id,false,true),
+  openSpend:id=>{V.charMenu=null;V.convMenu=null;go({k:'spend',id})},
+  spendRe:id=>makeSpend(id,false,true),
   giftBuy:id=>{const cv=V.sub&&V.sub.id,c=S.convs[cv],g=GIFTS.find(x=>x[0]===id);if(!c||!g)return;const w=wallet(),to=c.members[0];
     if(w.bal<g[3]){toast(`餘額不夠（還差 ${money(g[3]-w.bal)}）`);return}if(!confirm(g[3]?`花 ${money(g[3])} 送 ${g[1]} ${g[2]} 給${chName(to)}？`:`送 ${g[1]} ${g[2]} 給${chName(to)}？`))return;
     sendGift(cv,{e:g[1],n:g[2],p:g[3]})},
@@ -1407,6 +1437,7 @@ let timeDirty=false;
 app.addEventListener('focusout',e=>{const t=e.target;if(!timeDirty||(t.id!=='d-sb'&&t.id!=='d-sw'))return;setTimeout(()=>{const a=document.activeElement;if(timeDirty&&!(a&&(a.id==='d-sb'||a.id==='d-sw'))){timeDirty=false;render()}},400)});
 app.addEventListener('change',e=>{const t=e.target;
   if(t.id==='me-diary'){S.profile.diaryOff=!t.checked;save('profile','p');render()}
+  if(t.id==='spend-spicy'){S.profile.spendSpicy=t.checked;save('profile','p');toast(t.checked?'已打開，下次產生的紀錄才會有（可以按重新產生）':'已關閉');render()}
   if(t.id==='me-sched'){S.profile.schedOff=!t.checked;save('profile','p');render()}
   if(t.id==='me-bday'){S.profile.bday=t.value;save('profile','p');toast(t.value?'已記下你的生日':'已清除')}
   if(t.id==='an-date'||t.id==='an-cid'){drafts[t.id]=t.value}
